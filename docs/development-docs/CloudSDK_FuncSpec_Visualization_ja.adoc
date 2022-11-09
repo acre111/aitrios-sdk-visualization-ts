@@ -123,13 +123,13 @@
 
 [#_Input-DeviceID]
 .Device ID入力画面
-image::./ScreenSpec_visualizationTool_deviceid.png[Device ID入力画面仕様]
+image::./ScreenSpec_visualizationTool_deviceid.png
 . 推論結果を確認したい *"Device ID"* を入力して設定する。
 .  *"Device ID"* を確定し結果確認画面に遷移する。
 ..  *"Device ID"* に *"mock"* と入力した場合、Consoleへは接続せず、Visualizationがダミー動作をする。
 
 .RealtimeMode画面
-image::./ScreenSpec_visualizationTool_realtime.png[RealtimeMode画面仕様]
+image::./ScreenSpec_visualizationTool_realtime.png
 
 STATUSの表示は下記の通りとする。
 |===
@@ -158,7 +158,7 @@ STATUSの表示は下記の通りとする。
 . クラウドストレージから最新結果の取得と表示を開始/停止するボタン
 
 .HistoryMode画面
-image::./ScreenSpec_visualizationTool_history.png[HistoryMode画面仕様]
+image::./ScreenSpec_visualizationTool_history.png
 *"Device ID"* の表示は、<<#_Input-DeviceID, *"Device ID"* 入力画面>>で入力したDevice IDを表示する。 +
 STATUSの表示は下記の通りとする。
 |===
