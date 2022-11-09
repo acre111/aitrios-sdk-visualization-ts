@@ -1,0 +1,157 @@
+/* 
+ * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.history-controls-container {
+  display: grid;
+  grid-template-columns: [col1-start] 100% [col-end];
+  grid-template-rows: [row1-start] 76px [row2-start] 84px [row3-start] 100px [row4-start] 1fr [row-end];
+  height: 100%;
+
+  .history-control-confidence {
+    grid-column-start: col1-start;
+    grid-column-end: col-end;
+    grid-row-start: row1-start;
+    grid-row-end: row2-start;
+    color: #8a8c99;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-style: solid;
+    border-color: #e0e0e0;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+
+    .confidence-header {
+      margin-top: 8px;
+      margin-bottom: 14px;
+    }
+  }
+
+  .history-control-intervaltime {
+    grid-column-start: col1-start;
+    grid-column-end: col-end;
+    grid-row-start: row2-start;
+    grid-row-end: row3-start;
+    color: #8a8c99;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-style: solid;
+    border-color: #e0e0e0;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+
+    .intervaltime-header {
+      margin-top: 12px;
+      margin-bottom: 14px;
+    }
+  }
+
+  .history-control-imageselection {
+    grid-column-start: col1-start;
+    grid-column-end: col-end;
+    grid-row-start: row3-start;
+    grid-row-end: row4-start;
+    color: #8a8c99;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 0 15px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-evenly;
+    border-style: solid;
+    border-color: #e0e0e0;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+
+    .imageselection-header {
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+  }
+
+  .history-control-actions {
+    grid-column-start: col1-start;
+    grid-column-end: col-end;
+    grid-row-start: row4-start;
+    grid-row-end: row-end;
+    color: #8a8c99;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 0 15px;
+    padding-top: 18px;
+    display: flex;
+    justify-content: center;
+    border-style: solid;
+    border-color: #e0e0e0;
+    border-left-width: 1px;
+
+    .action-toggle-play {
+      background-color: #3bb0ff;
+      padding: 6px 8px 6px 7.5px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+
+      .play-svg {
+        margin-right: 7.5px;
+        margin-left: 4px;
+      }
+
+      .play-text {
+        font-size: 12px;
+        line-height: 16px;
+        color: white;
+      }
+    }
+
+    .action-toggle-disable:disabled {
+      background-color: #3bb0ff;
+      padding: 6px 8px 6px 7.5px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      cursor: not-allowed;
+
+      .play-svg {
+        margin-right: 7.5px;
+        margin-left: 4px;
+      }
+
+      .disable-text {
+        font-size: 12px;
+        line-height: 16px;
+        color: white;
+      }
+    }
+  }
+
+  .drop-down {
+    padding: 8px 0px 10px 28px;
+    display: flex;
+    justify-content: center;
+  }
+}
