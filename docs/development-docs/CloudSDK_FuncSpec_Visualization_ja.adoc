@@ -22,9 +22,9 @@
 |Terms/Abbreviations |Meaning
 
 |Console Access Library
-|AITRIOS^TM^ \| Consoleへのアクセス方法を提供するSDK
+|Console for AITRIOSへのアクセス方法を提供するSDK
 
-|AITRIOS^TM^ \| Console
+|Console for AITRIOS
 |エッジからクラウドを含めたソリューションを効率的に導入するための各種機能（デプロイメント機能、リトレーニング機能、デバイスマネジメント機能など）を提供するクラウドサービス
 
 |推論結果
