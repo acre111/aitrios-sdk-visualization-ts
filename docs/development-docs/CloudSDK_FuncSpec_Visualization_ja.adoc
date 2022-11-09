@@ -65,7 +65,7 @@
 * 任意のLabel名設定用ファイルを設定できる。※Label名設定用ファイルの詳細は制限事項に記載
 * Docker in Docker で動かすことができる。
 * Codespaces で動かすことができる。
-* ベースAIモデルはObjectDetectionのみ対応する。
+* ベースAIモデルはObject Detectionのみ対応する。
 
 
 === Algorithm
