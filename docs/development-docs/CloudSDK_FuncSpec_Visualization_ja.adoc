@@ -211,17 +211,17 @@ docker build
 ----
  public
    ∟DeviceID
-    ∟YYYYMMDDhhmmddsss <1>
-      ∟YYYYMMDDhhmmddsss <2>
-        ∟YYYYMMDDhhmmddsss.jpg <3>
-        ∟YYYYMMDDhhmmddsss.json <4>
+    ∟YYYYMMDDhhmmddsss (1)
+      ∟YYYYMMDDhhmmddsss (2)
+        ∟YYYYMMDDhhmmddsss.jpg (3)
+        ∟YYYYMMDDhhmmddsss.json (4)
 ----
-<1> [StartUpload]開始時に作成されるフォルダ +
-推論開始時刻がフォルダ名となる
-<2> 推論結果と画像を格納するフォルダ +
-推論結果と画像を保存した時刻がフォルダ名となる
-<3> 画像ファイル
-<4> 推論結果
+(1) [StartUpload]開始時に作成されるフォルダ +
+推論開始時刻がフォルダ名となる +
+(2) 推論結果と画像を格納するフォルダ +
+推論結果と画像を保存した時刻がフォルダ名となる +
+(3) 画像ファイル +
+(4) 推論結果
 +
 . HistoryModeの場合 +
 *"Probability"*/*"IntervalTime"*/*"SubDirectory"*/*"ImageSelection"* を設定し、*[Start Playing]* を押下する。
