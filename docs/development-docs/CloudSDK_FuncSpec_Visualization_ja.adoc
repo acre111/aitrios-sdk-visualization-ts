@@ -31,7 +31,7 @@
 |Vision and Sensing Applicationからの出力のうち、AI処理されたメタデータ
 
 |画像
-|Vision and Sensing Applicationからの出力のうち、カメラがとらえているイメージデータ
+|Vision and Sensing Applicationからの出力のうち、エッジAIデバイスがとらえているイメージデータ
 
 |===
 
