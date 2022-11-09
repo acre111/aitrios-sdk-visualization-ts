@@ -384,7 +384,7 @@ docker build
    "Label_3"
  ]
 
-* ConsoleのWebUIから、Command Parameter Fileを下記の設定にしておく。
+* Console UIから、Command Parameter Fileを下記の設定にしておく。
 ** Mode=1(Image&Inference Result)
 ** UploadMethodIR="Mqtt"
 
