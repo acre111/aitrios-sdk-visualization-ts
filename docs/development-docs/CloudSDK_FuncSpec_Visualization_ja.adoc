@@ -1,16 +1,15 @@
 = Cloud SDK pass:[<br/>] Visualization pass:[<br/>] 機能仕様書 pass:[<br/>]
-:title-page-background-image: image:../../../images/Trademark.png[fit=none,pdfwidth=50%,position=bottom center]
 :sectnums:
-:sectnumlevels: 4
-:chapter-label:
-:author: Copyright 2022 Sony Semiconductor Solutions Corporation
-:revdate: 2022 - xx - xx
-:revnumber: 0.0.x
+:sectnumlevels: 1
+:author: Copyright 2023 Sony Semiconductor Solutions Corporation
+:version-label: Version 
+:revnumber: x.x.x
+:revdate: YYYY - MM - DD
+:trademark-desc: AITRIOS™、およびそのロゴは、ソニーグループ株式会社またはその関連会社の登録商標または商標です。
 :toc:
 :toc-title: 目次
-:toclevels: 4
+:toclevels: 1
 :chapter-label:
-:document-title-header:
 :lang: ja
 
 == 更新履歴
@@ -21,11 +20,17 @@
 |2022/11/16
 |初版作成
 
+|2023/1/30
+|UI刷新に向けての更新 + 
+Classification対応 + 
+PDFビルド環境更新
+
 |===
 
-== はじめに
 
+== はじめに
 * 本書は、推論結果を確認するためのVisualizationについての機能仕様である。機能開発言語には、TypeScriptを使用する。アプリケーションフレームワークはNext.jsを使用する。
+
 
 == 用語・略語
 |===
@@ -34,22 +39,24 @@
 |Console Access Library
 |Console for AITRIOSへのアクセス方法を提供するSDK
 
-|Console for AITRIOS
-|エッジからクラウドを含めたソリューションを効率的に導入するための各種機能（デプロイメント機能、リトレーニング機能、デバイスマネジメント機能など）を提供するクラウドサービス
+|Console for AITRIOS (以下、Consoleと記載)
+|エッジからクラウドを含めたソリューションを効率的に導入するための各種機能（デプロイメント機能、リトレーニング機能、エッジAIデバイスマネジメント機能など）を提供するクラウドサービス
 
 |推論結果
 |Vision and Sensing Applicationからの出力のうち、AI処理されたメタデータ
 
 |画像
 |Vision and Sensing Applicationからの出力のうち、エッジAIデバイスがとらえているイメージデータ
-
 |===
+
 
 == 参照資料
 * Visualizationで利用するTypeScript版Console Access Library
 ** https://github.com/SonySemiconductorSolutions/aitrios-sdk-console-access-lib-ts
+
 * Visualizationで利用する推論結果Deserializeサンプルコード
 ** https://github.com/SonySemiconductorSolutions/aitrios-sdk-deserialization-sample
+
 * Next.js
 ** https://nextjs.org/
 
@@ -57,52 +64,60 @@
 == 想定ユースケース
 * ユーザーはリポジトリ内のVisualizationを起動することで、エッジAIデバイスがUploadした推論結果の確認ができる。
 
+
 == 機能概要、アルゴリズム
 [NOTE]
 === Functional Overview
-* Device IDを選択することで、メイン画面が表示される。
-* RealtimeModeとHistoryModeの切り替えができる。
-* RealtimeMode
-** 最新データを取得、表示、保存できる。
-** Start Uploadボタンを押下することで、画像/推論結果のアップロードを開始する。
-** Stop Uploadボタンを押下することで、画像/推論結果のアップロードを停止する。
-** Start Pollingボタンを押下することで、最新の画像/推論結果の取得、保存、画面表示を開始する。
-** Stop Pollingボタンを押下することで、最新の画像/推論結果の取得、保存、画面表示を停止する。
-* HistoryMode
-** 指定したサブディレクトリに紐づく過去のデータを取得、表示、保存できる。
-** Start Playingボタンを押下することで、過去の画像/推論結果の取得、保存、画面表示を開始する。
-** Stop Playingボタンを押下することで、過去の画像/推論結果の取得、保存、画面表示を停止する。
-* 任意のLabel名設定用ファイルを設定できる。※Label名設定用ファイルの詳細は制限事項に記載
+* Realtime Mode
+** 最新データを取得、表示できる。
+** Start Uploadボタンを押下することで、推論元画像/推論結果のアップロードを開始する。
+** Stop Uploadボタンを押下することで、推論元画像/推論結果のアップロードを停止する。
+** Start Pollingボタンを押下することで、最新の推論元画像/推論結果の取得、画面表示を開始する。
+*** 選択しているAI TaskがClassificationの場合は、推論結果一覧の表示も開始する。
+** Stop Pollingボタンを押下することで、最新の推論元画像/推論結果の取得、画面表示を停止する。
+*** 選択しているAI TaskがClassificationの場合は、推論結果一覧の表示も停止する。
+
+* History Mode
+** 指定したサブディレクトリに紐づく過去のデータを取得、表示できる。
+** Start Playingボタンを押下することで、過去の推論元画像/推論結果の取得、画面表示を開始する。
+*** 選択しているAI TaskがClassificationの場合は、推論結果一覧の表示も開始する。
+** Stop Playingボタンを押下することで、過去の推論元画像/推論結果の取得、画面表示を停止する。
+*** 選択しているAI TaskがClassificationの場合は、推論結果一覧の表示も停止する。
+
 * Docker in Docker で動かすことができる。
 * Codespaces で動かすことができる。
-* ベースAIモデルはObject Detectionのみ対応する。
-
+* ベースAIモデルはObject DetectionとClassificationのみ対応する。
 
 === Algorithm
 . 画面を起動する。
-.. Device IDを入力する。
-. メイン画面に移行する。
-.. モードを選択する。（RealtimeMode/HistoryMode）。
-.. Label名設定用ファイルを設定する。（指定なしの場合デフォルトのファイルが適用される）
-. RealtimeModeの場合
-.. Probabilityを設定し、Start Uploadを押下する。
-.. startuploadinferenceresultが呼び出され、推論結果と画像のアップロードが開始される。
+.. メイン画面が表示される。
+. getDeviceInfoが呼び出され、Consoleに登録されているエッジAIデバイスのDevice ID一覧を取得する。
+. 取得したエッジAIデバイスのDevice ID一覧はドロップダウンリストに設定される。
+. 推論結果の表示ラベル設定を行う。
+. Display Settingメニューを開き、AI Taskタブ上の表示設定を行う。
+
+. Realtime Modeの場合
+.. 使用するエッジAIデバイスのDevice IDをDevice IDドロップダウンリストから選択し、Start Uploadを押下する。
+.. startUploadInferenceResultが呼び出され、推論元画像と推論結果のアップロードが開始される。
 .. Polling Intervalを設定し、Start Pollingボタンを押下する。
-.. getImageData,getLatestInferenceDataが定期呼び出しされ、最新の推論結果と画像を取得し、Visualizationが動作しているフォルダに保存する。
-.. 取得した画像と推論結果は画面に表示される。
-.. Stop Uploadボタンを押下すると、stopuploadinferenceresultが呼び出され、推論結果と画像のアップロードが停止される。
-.. Stop Pollingボタンを押下すると、最新の推論結果と画像の取得、保存、表示が停止される。
-. HistoryModeの場合
-.. History Mode画面に遷移後、Consoleに保存済のDevice IDに紐づく推論結果をすべて取得する。
-.. getImageListを呼び出し、取得したサブディレクトリ一覧からプルダウンを作成する。
-.. Probability/IntervalTime/SubDirectoryを設定し、Start Playingを押下する。
-.. 指定したSubDirectoryを引数に取るgetImageListが呼び出しされ、既にConsoleに格納されている画像を取得する。
-.. 取得した画像と推論結果を、Visualizationが動作しているフォルダに保存し、保存された画像群をもとに、画像名リストを作成する。
-* 保存ディレクトリはRealtimeModeと同様の構成とする。
-.. 画像名リストから取得（保存）された画像の総数を算出し、ImageSelectionを選択できるようにする。
-.. getInferenceDataを呼び出し、取得された画像に紐づく推論結果を取得する。
-.. Localに保存された画像データを取得し、推論結果と合わせて画面に表示される。
-.. Stop Playingボタンを押下すると、推論結果と画像の表示が停止される。
+.. getImage、getInferenceが定期呼び出しされ、最新の推論元画像と推論結果を取得、表示する。
+* 選択しているAI TaskがClassificationの場合は、推論結果一覧も表示する。
+.. Stop Uploadボタンを押下すると、stopUploadInferenceResultが呼び出され、推論元画像と推論結果のアップロードが停止される。
+.. Stop Pollingボタンを押下すると、最新の推論元画像と推論結果の取得、表示が停止される。
+* 選択しているAI TaskがClassificationの場合は、推論結果一覧の表示も停止される。
+
+. History Modeの場合
+.. 使用するエッジAIデバイスのDevice IDをDevice IDドロップダウンリストから選択する。
+.. getSubDirectoryListが呼び出され、推論元画像が保存されているサブディレクトリの一覧を取得する。
+.. 取得したサブディレクトリの一覧はドロップダウンリストに設定される。
+.. 使用するサブディレクトリをSub Directoryドロップダウンリストから選択する。
+.. getTotalImageCountが呼び出され、選択したサブディレクトリに保存されている推論元画像の件数を取得する。
+.. Image Selection/Interval Time を設定し、Start Playingを押下する。
+.. getImage、getInferenceが定期呼び出しされ、サブディレクトリに保存されている推論元画像の件数分の推論元画像と推論結果を1件ずつ取得、表示する。
+* サブディレクトリの最後の推論元画像と推論結果を取得、表示した後は、再度1件目の推論元画像と推論結果を取得する。
+* 選択しているAI TaskがClassificationの場合は、推論結果一覧も表示する。
+.. Stop Playingボタンを押下すると、推論元画像と推論結果の取得、表示が停止される。
+* 選択しているAI TaskがClassificationの場合は、推論結果一覧の表示も停止される。
 
 
 === Under what condition
@@ -116,80 +131,125 @@
 
 === API
 * GET
-** {base_url}/api/image/imagepath
-** {base_url}/api/imagelist/deviceID?[uploadSubDirectory]
-** {base_url}/api/inference/deviceID/selector
-** {base_url}/api/labels
-** {base_url}/api/startuploadinferenceresult/deviceID
-** {base_url}/api/stopuploadinferenceresult/deviceID
-** {base_url}/api/deviceinfo/deviceID
+** {base_url}/api/image/{deviceId}
+** {base_url}/api/inference/{deviceId}
+** {base_url}/api/subDirectoryList/{deviceId}
+** {base_url}/api/totalImageCount/{deviceId}
+** {base_url}/api/deviceInfo
+
+* POST
+** {base_url}/api/startUploadInferenceResult/{deviceId}
+** {base_url}/api/stopUploadInferenceResult/{deviceId}
 
 === Others Exclusive conditions / specifications
 * なし
+
 
 == 操作性仕様、画面仕様
 === 画面仕様
 :figure-caption: 図
 
-[#_Input-DeviceID]
-==== Device ID入力画面
-image::./ScreenSpec_visualizationTool_deviceid.png[width="700"]
-. 推論結果を確認したい *"Device ID"* を入力して設定する。
-.  *"Device ID"* を確定し結果確認画面に遷移する。
-..  *"Device ID"* に *"mock"* と入力した場合、Consoleへは接続せず、Visualizationがダミー動作をする。
+[#_Overview]
+==== 画面全体像
+image::./ScreenSpec_Visualization_OverView_ja.png[画面全体像仕様]
 
-==== RealtimeMode画面
-image::./ScreenSpec_visualizationTool_realtime.png[width="700"]
+. AI Taskタブ
+* *"Object Detection"* のタブと *"Classification"* のタブに分かれている
+. Modeタブ
+* *"Realtime Mode"* のタブと *"History Mode"* のタブに分かれている
 
-STATUSの表示は下記の通りとする。
-|===
-||Polling中|Polling停止中
 
-|Upload中
-|Uploading / Polling
-|Uploading / Not polling
-|Upload停止中
-|Not Uploading / Polling
-|Not Uploading / Not polling
+==== Object Detectionタブ
+image::./ScreenSpec_Visualization_ObjectDetection_ja.png[Object Detectionタブ仕様, width="700"]
 
-|===
+. Display Settingメニュー
+** AI Taskタブ上の表示設定を行う
+. 画像ファイルのタイムスタンプ
+. 推論元画像
+. 推論結果
+. 推論結果生データ
+** JSON形式で表示される
+. 推論結果の表示ラベル設定
+** テキスト形式で表示される
 
-. クラウドから取得した最新画像
-. クラウドから取得した最新推論結果
-. モードを切り替える
-. Label名設定用ファイルを選択するボタン（エクスプローラーが表示）
-** 指定なしの場合は、デフォルトのファイルが適用される  *`src/public/labels/labels.json`*
-. 選択されたFile名を表示する
-. 画面上に表示する確信度の境界値を調整する
-** 境界値はスライドバーの右横に数字で記載
-. Consoleへデータ取得する時のPolling間隔を設定する
-** Polling間隔はスライドバーの右横に数字で記載
-. 推論結果と画像のアップロードを開始/停止するボタン
-. クラウドストレージから最新結果の取得と表示を開始/停止するボタン
 
-==== HistoryMode画面
-image::./ScreenSpec_visualizationTool_history.png[width="700"]
-*"Device ID"* の表示は、<<#_Input-DeviceID, *"Device ID"* 入力画面>>で入力したDevice IDを表示する。 +
-STATUSの表示は下記の通りとする。
-|===
-|Playing中|Playing停止中
+==== Classificationタブ
+image::./ScreenSpec_Visualization_Classification_ja.png[Classificationタブ仕様, width="700"]
 
-|Playing
-|Not playing
+. Display Settingメニュー
+** AI Taskタブ上の表示設定を行う
+. 画像ファイルのタイムスタンプ
+. 推論元画像
+. 推論結果
+** Display SettingメニューのProbabilityスライダーに設定した境界値以上かつ、最も高いScoreの推論結果が表示される
+** 最も高いScoreが同点の場合は、そのうちの一つ目が表示される
+** Scoreが全て0%の場合は推論結果を表示しない
+. 推論結果一覧
+. 推論結果生データ
+** JSON形式で表示される
+. 推論結果の表示ラベル設定
+** テキスト形式で表示される
 
-|===
 
-* 1～5はRealtimeModeの画面と同様
-* 6. 画面上に表示する確信度の境界値を調整する
-** 境界値はスライドバーの右横に数字で記載
-* 7. 画像を切り替えるPlaying間隔を設定する
-** Playing間隔はスライドバーの右横に数字で記載
-* 8. クラウド上画像のSubDirectoryをリストから選択する
-** Consoleに格納されている画像パス一覧からリストを作成
-* 9. 表示開始する画像のインデックスを設定する
-** インデックスはスライドバーの右横に数字で記載
-** スライドバーを変更した際は、画像の日時のみインデックスに紐づくものに更新される
-* 10. 画像切り替えを開始/停止するボタン
+==== Realtime Modeタブ
+image::./ScreenSpec_Visualization_RealtimeMode.png[Realtime Modeタブ仕様, width="700"]
+
+. Device IDドロップダウンリスト
+** Consoleに登録されているエッジAIデバイスのDevice IDを選択する
+. Polling Intervalスライダー
+** Consoleからデータ取得する時のPolling間隔を設定するスライダー
+** Polling間隔はスライダーの右横に数字で記載
+. Start Upload/Stop Uploadボタン
+** 画像と推論結果のアップロードを開始/停止する
+. Start Polling/Stop Pollingボタン
+** Consoleから最新の画像・推論結果の取得と、表示を開始/停止する
+
+
+==== History Modeタブ
+image::./ScreenSpec_Visualization_HistoryMode.png[History Modeタブ仕様, width="700"]
+
+. Device IDドロップダウンリスト
+** Consoleに登録されているエッジAIデバイスのDevice IDを選択する
+. Sub Directoryドロップダウンリスト
+** Consoleに格納されている画像のSub Directoryを選択する
+. Image Selectionスライダー
+** 表示開始する推論元画像のインデックスを設定する
+** インデックスはスライダーの右横に数字で記載
+** スライダーの値を変更した際は、推論元画像の日時のみインデックスに紐づくものに更新される
+. Interval Timeスライダー
+** 推論元画像を切り替える時のPlaying間隔を設定する
+** Playing間隔はスライダーの右横に数字で記載
+. Start Playing/Stop Playingボタン
+** 推論元画像切り替えを開始/停止する
+
+
+==== Display Settingメニュー(Object Detectionタブ)
+image::./ScreenSpec_Visualization_SettingMenu_ObjectDetection.png[Display Settingメニュー(Object Detectionタブ)仕様]
+
+. Display Settingメニューを閉じるボタン
+. Probabilityスライダー
+** AI Taskタブ上に表示する確信度の境界値を調整する
+** 境界値はスライダーの右横に%で記載
+. Display Timestampボタン
+** 画像ファイルのタイムスタンプの表示/非表示を設定する
+
+
+==== Display Settingメニュー(Classificationタブ)
+image::./ScreenSpec_Visualization_SettingMenu_Classification.png[Display Settingメニュー(Classificationタブ)仕様]
+
+* 1～3はObject DetectionタブのDisplay Settingメニューと同様
+
+[start=4]
+. Display Top Scoreドロップダウンリスト
+** 推論結果一覧に表示する件数を選択する
+** 最大値は20とする
+. Overlay Inference Resultボタン
+** 推論結果のScoreが最も高い情報の表示/非表示を設定する
+** Classificationタブの推論結果の表示に紐づく
+. Overlay Inference Result Colorボタン
+** 推論結果のScoreが最も高い情報の表示色を設定する
+** カラーピッカーから任意の色を選択する
+
 
 === 操作性仕様
 ==== Visualization起動までの操作
@@ -200,140 +260,200 @@ STATUSの表示は下記の通りとする。
 
 * Dockerコンテナをビルドして使う
 . 利用者は任意のブラウザからVisualizationのリポジトリを開き、リポジトリをCloneする。
-. リポジトリ内のDockerfileに対し、"下記コマンドを実行することでVisualizationを起動する。 +
+. リポジトリ内のDockerfileに対し、下記コマンドを実行することでVisualizationを起動する。
++
 ....
 docker build
 ....
 
 ==== Visualization起動後の操作
-. *"Device ID"* を入力すると、メイン画面に移行する。
-. RealtimeMode/HistoryMode任意のモードを指定する。
-. Label名設定用ファイルを選択する（任意）。
-* 選択されたファイルは、下記に反映される　*`src/public/labels/customLabels.json`*
-* 指定なしの場合は、デフォルトのファイルが適用される *`src/public/labels/labels.json`*
+. Visualization起動後はメイン画面に遷移する。
+. AI Taskタブから [**Object Detection**]/[**Classification**] のうち、任意のタブを指定する。
+. Modeタブから [**Realtime Mode**]/[**History Mode**] のうち、任意のモードを指定する。
 
-[#_RealtimeMode-operation]
-. RealtimeModeの場合 +
-*"Probability"* / *"PollingInterval"* を設定し、*[Start Upload]* 押下後、*[Start Polling]* ボタンを押下する。
-* Polling中 *"Probability"* は機能するが、*"PollingInterval"* は機能しない。
-* 保存ディレクトリは下記の構成とする。
-+
-----
- public
-   ∟DeviceID
-    ∟YYYYMMDDhhmmddsss (1)
-      ∟YYYYMMDDhhmmddsss (2)
-        ∟YYYYMMDDhhmmddsss.jpg (3)
-        ∟YYYYMMDDhhmmddsss.json (4)
-----
-(1) [StartUpload]開始時に作成されるフォルダ +
-推論開始時刻がフォルダ名となる +
-(2) 推論結果と画像を格納するフォルダ +
-推論結果と画像を保存した時刻がフォルダ名となる +
-(3) 画像ファイル +
-(4) 推論結果
-+
-. HistoryModeの場合 +
-*"Probability"*/*"IntervalTime"*/*"SubDirectory"*/*"ImageSelection"* を設定し、*[Start Playing]* を押下する。
-* Playing中 *"Probability"* は機能するが、*"IntervalTime"*/*"SubDirectory"*/*"ImageSelection"* は機能しない。
-* Stop Playing中に *"ImageSelection"* を移動させても画像は切り替わらない。
-* 保存ディレクトリは<<#_RealtimeMode-operation,RealtimeModeの場合>>に記載のものと同様。
-. 指定した画像/推論結果の取得を開始し、画面上に表示される。
-. RealtimeModeの場合、*[Stop Upload]* ボタン押下後、*[Stop Polling]* ボタンを押下する。
-. HistoryModeの場合、*[Stop Playing]* ボタンを押下する。
+. AI Taskの選択
+[#_AI Task-operation]
+.. Object Detectionタブの場合
+... [**Display Setting**]メニューを開いて、[**Probability**]スライダー/[**Display Timestamp**] を設定する。
+* Polling/Playing中でも[**Probability**]スライダー は機能する。
+* 推論元画像が表示されていれば、停止中でも機能する。
+... 推論結果の表示ラベル設定を変更する。
+... Modeタブの操作により、画像ファイルのタイムスタンプ/推論元画像/推論結果/推論結果生データ が表示される。
+** 推論結果は推論元画像の上に、推論結果の表示ラベル設定で設定したラベル名と共に枠で表示される。
+
+.. Classificationタブの場合
+... [**Display Setting**]メニューを開いて、[**Probability**]スライダー/[**Display Timestamp**]ボタン/[**Display Top Score**]ドロップダウンリスト/[**Overlay Inference Result**]ボタン/[**Overlay Inference Result Color**]ボタン を設定する。
+* Polling/Playing中でも[**Probability**]スライダー は機能する。
+* 推論元画像が表示されていれば、停止中でも機能する。
+... 推論結果の表示ラベル設定を変更する。
+... Modeタブの操作により、画像ファイルのタイムスタンプ/推論元画像/推論結果/推論結果一覧/推論結果生データが表示される。
+
+. Modeの選択
+[#_Mode-operation]
+.. Realtime Modeタブの場合
+... [**Device ID**]ドロップダウンリスト/[**Polling Interval**]スライダー を設定し、[**Start Upload**]ボタン 押下後に [**Start Polling**] ボタンを押下する。
+** Polling中は[**Device ID**]ドロップダウンリスト/[**Polling Interval**]スライダー は機能しない。
+... 指定した推論元画像/推論結果の取得が開始され、AI Taskタブ上に表示される。
+... [**Stop Polling**]ボタン押下後、[**Stop Upload**]ボタンを押下する。
+** Polling中に[**Stop Polling**]ボタンを押下するとPollingのみが停止されるが、Polling中に[**Stop Upload**]ボタンを押下すると、UploadとPollingの両方が停止される。
+
+.. History Modeタブの場合
+... [**Device ID**]ドロップダウンリスト/[**Sub Directory**]ドロップダウンリスト/[**Image Selection**]スライダー/[**Interval Time**]スライダー を設定し、[**Start Playing**]ボタンを押下する。
+** Playing中は[**Device ID**]ドロップダウンリスト/[**Sub Directory**]ドロップダウンリスト/[**Image Selection**]スライダー/[**Interval Time**]スライダー は機能しない。
+** Stop Playing中に [**Image Selection**]スライダー の値を変更しても推論元画像は切り替わらない。
+... 指定した推論元画像/推論結果の取得が開始され、AI Taskタブ上に表示される。
+... [**Stop Playing**]ボタンを押下する。
+
 
 === 各BlockでのAPIパラメータ
-=== GET
+==== GET
 
-* {base_url}/api/image/imagepath** 指定したimagepathの画像を取得し返却する。
+* getImage +
+URL：{base_url}/api/image/{deviceId}?{imagePath}&{numberOfImages}&{skip}&{orderBy}
+** 指定したimagePathの画像を取得し返却する。
+
 |===
-|Query Parameter’s name|Meaning|Range of parameter
+|Query Parameter's name|Meaning|Range of parameter
 
-|imagepath
-|取得したい画像のクラウドストレージ上のPath
+|deviceId
+|推論元画像をUploadしているエッジAIデバイスのDevice ID
 |指定なし
 
+|imagePath
+|取得したい推論元画像のクラウドストレージ上のPath
+|指定なし
+
+|numberOfImages
+|推論元画像の取得件数
+|指定なし
+
+|skip
+|取得をスキップする推論元画像の件数
+|指定なし
+
+|orderBy
+|推論元画像が作成された日時によるソート順
+|ASC、DESC
 |===
+
 |===
 |Return value|Meaning
 
 |buff
-|取得した画像のバイナリデータ
+|取得した推論元画像のバイナリデータ
+
+|timestamp
+|取得した推論元画像のタイムスタンプ
 |===
 
 
-* {base_url}/api/imagelist/deviceID?[uploadSubDirectory]
-** Device IDの画像リストを取得し返却する。
-|===
-|Query Parameter’s name|Meaning|Range of parameter
-
-|deviceID
-|画像をUploadしているDevice ID
-|指定なし
-
-|uploadSubDirectory
-|Console上に保存される画像データフォルダのSubDirectory
-|指定なし
-
-|===
-|===
-|Return value|Meaning
-
-|return
-|取得した画像リスト
-|===
-
-
-* {base_url}/api/inference/deviceID?[imagePath]&[timestamp]
+* getInference +
+URL : {base_url}/api/inference/{deviceId}?{timestamp}&{aiTask}
 ** 画像に紐づく推論結果リストを取得し返却する。
+*** 当API内で推論結果のデシリアライズも行う
+
 |===
-|Query Parameter’s name|Meaning|Range of parameter
+|Query Parameter's name|Meaning|Range of parameter
 
-|deviceID
-|推論結果をUploadしているDevice ID
-|指定なし
-
-|imagePath
-|推論結果と紐づく保存済み画像データのpublicフォルダ以下のパス
+|deviceId
+|推論結果をUploadしているエッジAIデバイスのDevice ID
 |指定なし
 
 |timestamp
-|推論結果と画像を保存した時刻
+|推論元画像の保存時に取得したタイムスタンプ
 |指定なし
 
+|aiTask
+|選択しているAI Taskの種類
+|ObjectDetection、Classification
 |===
+
 |===
 |Return value|Meaning
 
-|return
-|推論結果が含まれたリスト
+|inferences list
+|推論元画像に紐づく推論結果のリスト
 |===
 
 
-* {base_url}/api/labels
-** 推論結果のClassIDと対応するLabel設定を取得し返却する。
-|===
-|Query Parameter’s name|Meaning|Range of parameter
+* getSubDirectoryList +
+URL : {base_url}/api/subDirectoryList/{deviceId}
+** 推論元画像が保存されているサブディレクトリのリストを取得し返却する。
 
 |===
+|Query Parameter's name|Meaning|Range of parameter
+
+|deviceId
+|推論元画像をUploadしているエッジAIデバイスのDevice ID
+|指定なし
+|===
+
 |===
 |Return value|Meaning
 
-|labels
-|ClassLabelデータ
+|subDirectory list
+|推論元画像が保存されているサブディレクトリのリスト
 |===
 
 
-* {base_url}/api/startuploadinferenceresult/deviceID
-** 指定したDevice IDに対して推論結果と画像のUpload開始を要求する。
-|===
-|Query Parameter’s name|Meaning|Range of parameter
+* getTotalImageCount +
+URL : {base_url}/api/totalImageCount/{deviceId}?{subDirectory}
+** 選択したサブディレクトリに保存されている推論元画像の件数を取得し返却する。
 
-|deviceID
-|画像と推論結果をUploadさせるDevice ID
+|===
+|Query Parameter's name|Meaning|Range of parameter
+
+|deviceId
+|推論元画像をUploadしているエッジAIデバイスのDevice ID
 |指定なし
 
+|subDirectory
+|サブディレクトリ一覧から選択したサブディレクトリ
+|指定なし
 |===
+
+|===
+|Return value|Meaning
+
+|total image count
+|選択したサブディレクトリに保存されている推論元画像の件数
+|===
+
+
+* getDeviceInfo +
+URL : {base_url}/api/deviceInfo
+** Consoleに登録されているエッジAIデバイスのDevice ID一覧を取得する。
+
+|===
+|Query Parameter's name|Meaning|Range of parameter
+
+|なし
+|
+|
+|===
+
+|===
+|Return value|Meaning
+
+|device list
+|エッジAIデバイスのDevice ID一覧
+|===
+
+
+==== POST
+* startUploadInferenceResult +
+URL : {base_url}/api/startUploadInferenceResult/{deviceId}
+** 選択したエッジAIデバイスのDevice IDに対して、推論結果と推論元画像のUpload開始を要求する。
+*** 当API内でCommand Parameter Fileの一覧取得も行う
+
+|===
+|Query Parameter's name|Meaning|Range of parameter
+
+|deviceId
+|推論元画像と推論結果をUploadするエッジAIデバイスのDevice ID
+|指定なし
+|===
+
 |===
 |Return value|Meaning
 
@@ -345,38 +465,23 @@ docker build
 |===
 
 
-* {base_url}/api/stopuploadinferenceresult/deviceID
-** 指定したDevice IDに対して推論結果と画像のUpload停止を要求する。
-|===
-|Body Parameter’s name|Meaning|Range of parameter
+* stopUploadInferenceResult +
+URL : {base_url}/api/stopUploadInferenceResult/{deviceId}
+** 選択したエッジAIデバイスのDevice IDに対して、推論結果と画像のUpload停止を要求する。
 
-|deviceID
-|画像と推論結果のUploadを停止させるDevice ID
+|===
+|Query Parameter's name|Meaning|Range of parameter
+
+|deviceId
+|推論元画像と推論結果のUploadを停止するエッジAIデバイスのDevice ID
 |指定なし
-
 |===
+
 |===
 |Return value|Meaning
 
 |result
 |SUCCESSかERRORの文字列
-|===
-
-* {base_url}/api/deviceinfo/deviceID
-** 指定したDevice IDの情報を取得する。
-|===
-|Body Parameter’s name|Meaning|Range of parameter
-
-|deviceID
-|取得する対象のDevice ID
-|指定なし
-
-|===
-|===
-|Return value|Meaning
-
-|device information
-|エッジAIデバイス情報
 |===
 
 
@@ -385,21 +490,21 @@ docker build
 * 処理に5秒以上かかる場合は、処理中の表現を逐次更新表示できること。
 
 == 制限事項
-* 今回はObject Detectionのみの対応とする。
-* Label名設定用ファイルはjson形式とする（下記を参考とする）。
+* 今回はAI TaskはObject DetectionとClassificationのみの対応とする。
+* 推論結果の表示ラベル設定はテキスト形式で行うこととする（下記を参考とする）。
 
- [
-   "Label_1",
-   "Label_2",
-   "Label_3"
- ]
+   Label_1
+   Label_2
+   Label_3
 
 * Console UIから、Command Parameter Fileを下記の設定にしておく。
 ** Mode=1(Image&Inference Result)
 ** UploadMethodIR="Mqtt"
+* 実行時にAIモデルやアプリケーションがデプロイされていないエッジAIデバイスを選択した場合、正常に動作しない。
+* データ取得時のAIモデルと異なるAI Taskを選択した場合、エラーまたは不正なデータとなる場合がある。
 
 == その他特記事項
 * エッジAIデバイスからConsoleへの画像アップロード時に、最大数分程度の遅延が発生することがある。
 
 == 未決定事項
-* 無し
+* なし
