@@ -1,0 +1,74 @@
+.classfication-container {
+  margin: 10px 1em;
+
+  .upper-items {
+    .timestamp-area {
+      background-color: yellow;
+      display: inline-block;
+      color: #a97443;
+    }
+  }
+
+  .middle-items {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .inference-data-list {
+      width: 45%;
+      height: 360px;
+      padding: 10px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border: 1px solid;
+
+      .inference-parameter {
+        display: flex;
+
+        .inference-parameter-name {
+          padding-top: 10px;
+          margin-right: auto;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  .lower-items {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 15px;
+
+    .left-item {
+      width: 50%;
+
+      .raw-data {
+        height: 300px;
+        font-size: 13px;
+        border: solid;
+        border-width: thin;
+        border-color: #373944;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
+    }
+
+    .right-item {
+      width: 45%;
+
+      .label-area {
+        height: 300px;
+        font-size: 12px;
+        border: solid;
+        border-width: medium;
+        border-color: #373944;
+        padding-left: 10px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
+    }
+  }
+}

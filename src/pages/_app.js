@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import '../styles/globals.css'
 import { ChakraProvider } from '@chakra-ui/react'
-import NProgress from 'nprogress'
 import Router from 'next/router'
+import NProgress from 'nprogress'
+import '../styles/globals.css'
 import '../styles/nprogress.css'
 
 NProgress.configure({

@@ -1,0 +1,58 @@
+.deviceid-area {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+ 
+.image-selection-area {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.subdirectory-area {
+  padding: 10px 20px 0px 20px;
+  font-size: 15px;
+}
+
+.select {
+  border: 0.6px solid #373944;
+  color: #373944;
+  margin-left: 1rem;
+}
+
+.disabled {
+  border: 0.6px solid #8a8c99;
+  color: #8a8c99;
+  margin-left: 1rem;
+  pointer-events: none;
+}
+
+.image-selection-slider {
+  margin: 5px 0px 5px 0px;
+  padding: 10px 0px 5px 10px;
+  width: 70%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .unit-area {
+    width: 15%;
+  }
+}
+
+.items-container {
+  padding: 10px 16px 10px 16px;
+  border-bottom: 1px solid #e0e0e0;
+
+  .interval-slider {
+    margin: 5px 0px 5px 0px;
+    padding: 10px 0px 5px 10px;
+    width: 70%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .unit-area {
+    width: 15%;
+  }
+}

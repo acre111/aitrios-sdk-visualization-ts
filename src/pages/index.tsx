@@ -14,84 +14,241 @@
  * limitations under the License.
  */
 
-import React, { useState, useRef } from 'react'
-import { useRouter } from 'next/router'
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  Text
-} from '@chakra-ui/react'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
+import React, { useEffect, useState } from 'react'
+import LoadingDialog from '../components/common/dialog/loading'
+import Layout from '../components/common/layout'
+import SettingMenu from '../components/common/menu/settingmenu'
+import Classification from '../components/tabs/aiTask/classification'
+import ObjectiveDetection from '../components/tabs/aiTask/objectdetection'
+import History from '../components/tabs/mode/history'
+import Realtime from '../components/tabs/mode/realtime'
+import useInterval from '../hooks/useInterval'
+import { BoundingBoxProps, ClsInferenceProps, PollingData, PollingHandlerProps, setDataProps, pollingHandler, setData } from '../hooks/util'
+import styles from '../styles/main-page.module.scss'
 
-import Layout from '../components/layout'
-import { DemoConfiguration } from '../common/config'
+export const REALTIME_MODE = 'realtimeMode'
+export const HISTORY_MODE = 'historyMode'
+export const OBJECT_DETECTION = 'objectDetection'
+export const CLASSIFICATION = 'classification'
 
 function Home () {
-  const [deviceId, setDeviceId] = useState(DemoConfiguration.deviceId)
-  const [disable, setDisable] = useState(false)
-  const router = useRouter()
-  const handleDeviceIdChange = (event: any) => {
-    setDeviceId(event.target.value)
+  const [aiTask, setAiTask] = useState<string>(OBJECT_DETECTION)
+  const [mode, setMode] = useState<string>(REALTIME_MODE)
+  const [timestamp, setTimestamp] = useState<string>('')
+  const [image, setImage] = useState<string>('')
+  const [inferencesOD, setInferencesOD] = useState<BoundingBoxProps[] | undefined>(undefined)
+  const [inferencesCls, setInferencesCls] = useState<ClsInferenceProps[] | undefined>(undefined)
+  const [inferenceRawData, setInferencesRawData] = useState<string | undefined>(undefined)
+  const [labelData, setLabelData] = useState<string[]>(['1', '2', '3', '4', '5'])
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  const [probability, setProbability] = useState<number>(0)
+  const [isDisplayTs, setIsDisplayTs] = useState<boolean>(true)
+  const [displayScore, setDisplayScore] = useState<number>(5)
+  const [isOverlayIR, setIsOverlayIR] = useState<boolean>(true)
+  const [overlayIRC, setOverlayIRC] = useState<string>('#FFFFFF')
+  const [intervalTimeValue, setIntervalTimeValue] = useState<number>(10)
+  const [deviceId, setDeviceId] = useState<string>('')
+  const [isUploading, setIsUploading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [imagePath, setImagePath] = useState<string>('')
+  const [imageCount, setImageCount] = useState<number>(0)
+  const [totalCount, setTotalCount] = useState<number>(1)
+  const [loadingDialogFlg, setLoadingDialogFlg] = useState<boolean>(false)
+  const [deviceIdList, setDeviceIdList] = useState<string[]>([])
+  const [isFirst, setIsFirst] = useState<boolean>(true)
+  const [displayCount, setDisplayCount] = useState<number>(-1)
+  const [pollingData, setPollingData] = useState<PollingData | undefined>(undefined)
+
+  const pollingHandlerProps: PollingHandlerProps = {
+    deviceId,
+    imagePath,
+    aiTask,
+    mode,
+    imageCount,
+    totalCount,
+    isFirst,
+    setImageCount,
+    setIsFirst,
+    setLoadingDialogFlg
   }
-  const handleClickButton = async () => {
-    setDisable(true)
-    try {
-      if (deviceId !== 'mock') {
-        const res = await fetch(`/api/deviceinfo/${deviceId}`)
-        const data = await res.json()
-        if (res.status === 500) {
-          window.alert('Get deviceInfo has failed. Plese check environment file.')
-          setDisable(false)
-          return
-        } else if (!Object.keys(data).length) {
-          window.alert('DeviceID is not registered. Plese re-enter.')
-          setDisable(false)
-          return
-        }
-      }
-    } catch (e) {
-      console.error(e)
-      window.alert('Get deviceInfo has failed.')
-      setDisable(false)
-      return
+
+  const setDataProps: setDataProps = {
+    pollingData,
+    aiTask,
+    imageCount,
+    totalCount,
+    setImage,
+    setTimestamp,
+    setImageCount,
+    setIsFirst,
+    setInferencesRawData,
+    setInferencesOD,
+    setInferencesCls,
+    setLoadingDialogFlg
+  }
+
+  useInterval(async () => {
+    if (isPlaying) {
+      setPollingData(await pollingHandler(pollingHandlerProps))
     }
-    router.push(`/${deviceId}`)
-  }
-  const initialRef = useRef<any>(undefined)
+  }, isPlaying ? intervalTimeValue * 1000 : null)
+
+  useEffect(() => {
+    if (isPlaying) {
+      setData(setDataProps)
+    }
+  }, [pollingData])
+
+  useEffect(() => {
+    (async () => {
+      if (isPlaying) {
+        setPollingData(await pollingHandler(pollingHandlerProps))
+      }
+    })()
+  }, [isPlaying])
 
   return (
-    <Layout title="edge AI device Visualization">
-      <Modal
-        isCentered
-        initialFocusRef={initialRef}
-        isOpen={true}
-        onClose={() => null}
-      >
-        <ModalOverlay />
-        <ModalContent style={{ borderWidth: '0.3em', borderColor: 'teal', borderRadius: '20px' }}>
-          <ModalHeader>Please Choose DeviceId</ModalHeader>
-          <ModalBody pb={6}>
-            <FormControl>
-              <FormLabel>DeviceId</FormLabel>
-              <Input onChange={handleDeviceIdChange} ref={initialRef} placeholder={''} />
-            </FormControl>
-          </ModalBody>
-          <ModalFooter>
-            <Button disabled={disable} colorScheme="teal" mr={3} onClick={handleClickButton}>
-              {!disable ? 'GO' : 'verify DeviceID...'}
-            </Button>
-          </ModalFooter>
-          <Text style={{ paddingLeft: '10px' }} as="i" fontSize="xs">DeviceId "mock" does not require Console</Text>
-        </ModalContent>
-      </Modal>
-    </Layout>
+    <>
+      <LoadingDialog display={loadingDialogFlg} />
+      <Layout title="edge AI device Visualization">
+        <div className={styles['main-page-container']}>
+          <div className={styles['main-page-stage']}>
+            <Tabs className={styles['aitask-tabs']} onChange={(taskNum: number) => {
+              setAiTask(taskNum === 0 ? OBJECT_DETECTION : CLASSIFICATION)
+            }}>
+              <TabList className={styles['aitask-tablist']}>
+                <Tab isDisabled={isPlaying || isUploading}>Object Detection</Tab>
+                <Tab isDisabled={isPlaying || isUploading}>Classification</Tab>
+              </TabList>
+              <div className={styles['display-setting-button']}>
+                {aiTask === OBJECT_DETECTION
+                  ? <SettingMenu
+                    aiTask={aiTask}
+                    mode={mode}
+                    probability={probability}
+                    setProbability={setProbability}
+                    isDisplayTs={isDisplayTs}
+                    setIsDisplayTs={setIsDisplayTs}
+                  />
+                  : <SettingMenu
+                    aiTask={aiTask}
+                    mode={mode}
+                    probability={probability}
+                    setProbability={setProbability}
+                    isDisplayTs={isDisplayTs}
+                    setIsDisplayTs={setIsDisplayTs}
+                    displayScore={displayScore}
+                    setDisplayScore={setDisplayScore}
+                    isOverlayIR={isOverlayIR}
+                    setIsOverlayIR={setIsOverlayIR}
+                    overlayIRC={overlayIRC}
+                    setOverlayIRC={setOverlayIRC}
+                  />
+                }
+              </div>
+              <TabPanels>
+                <TabPanel className={styles['aitask-tab-panel']}>
+                  <ObjectiveDetection
+                    timestamp={timestamp}
+                    image={image}
+                    inferences={inferencesOD}
+                    inferenceRawData={inferenceRawData}
+                    labelData={labelData}
+                    setLabelData={setLabelData}
+                    probability={probability}
+                    isDisplayTs={isDisplayTs}
+                    imageCount={imageCount}
+                    setDisplayCount={setDisplayCount}
+                    setLoadingDialogFlg={setLoadingDialogFlg}
+                  />
+                </TabPanel>
+                <TabPanel className={styles['aitask-tab-panel']}>
+                  <Classification
+                    timestamp={timestamp}
+                    image={image}
+                    inferences={inferencesCls}
+                    inferenceRawData={inferenceRawData}
+                    labelData={labelData}
+                    setLabelData={setLabelData}
+                    probability={probability}
+                    isDisplayTs={isDisplayTs}
+                    displayScore={displayScore}
+                    isOverlayIR={isOverlayIR}
+                    overlayIRC={overlayIRC}
+                    imageCount={imageCount}
+                    setDisplayCount={setDisplayCount}
+                    setLoadingDialogFlg={setLoadingDialogFlg}
+                    isFirst={isFirst}
+                    setIsFirst={setIsFirst}
+                  />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+            <Tabs className={styles['mode-tabs']} onChange={(tabNum: number) => {
+              switch (tabNum) {
+                case 0:
+                  setMode(REALTIME_MODE)
+                  break
+                case 1:
+                  setMode(HISTORY_MODE)
+                  break
+              }
+            }}>
+              <TabList className={styles['mode-tablist']}>
+                <Tab isDisabled={isPlaying || isUploading}>Realtime Mode</Tab>
+                <Tab isDisabled={isPlaying || isUploading}>History Mode</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel className={styles['realtime-mode-block']}>
+                  <Realtime
+                    deviceId={deviceId}
+                    setDeviceId={setDeviceId}
+                    deviceIdList={deviceIdList}
+                    setDeviceIdList={setDeviceIdList}
+                    isPlaying={isPlaying}
+                    mode={mode}
+                    intervalTimeValue={intervalTimeValue}
+                    isLoading={isLoading}
+                    setIsPlaying={setIsPlaying}
+                    setImagePath={setImagePath}
+                    isUploading={isUploading}
+                    setIsUploading={setIsUploading}
+                    setIsLoading={setIsLoading}
+                    setIntervalTimeValue={setIntervalTimeValue}
+                    setLoadingDialogFlg={setLoadingDialogFlg}
+                  />
+                </TabPanel>
+                <TabPanel className={styles['history-mode-block']}>
+                  <History
+                    deviceId={deviceId}
+                    setDeviceId={setDeviceId}
+                    deviceIdList={deviceIdList}
+                    setDeviceIdList={setDeviceIdList}
+                    isPlaying={isPlaying}
+                    mode={mode}
+                    intervalTimeValue={intervalTimeValue}
+                    subDirectory={imagePath}
+                    imageCount={imageCount}
+                    totalCount={totalCount}
+                    isFirst={isFirst}
+                    setIsPlaying={setIsPlaying}
+                    setSubDirectory={setImagePath}
+                    setImageCount={setImageCount}
+                    setTotalCount={setTotalCount}
+                    setIntervalTimeValue={setIntervalTimeValue}
+                    setLoadingDialogFlg={setLoadingDialogFlg}
+                    setIsFirst={setIsFirst}
+                    displayCount={displayCount}
+                    setDisplayCount={setDisplayCount}
+                  />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </div>
+        </div>
+      </Layout >
+    </>
   )
 }
 
