@@ -1,0 +1,50 @@
+.object-detection-container {
+  margin: 10px 1em;
+
+  .upper-items {
+    display: contents;
+    justify-content: center;
+
+    .timestamp-area {
+      background-color: yellow;
+      display: inline-block;
+      color: #a97443;
+    }
+
+    .boundingboxes-area {
+      margin: 0px 10px 10px 0px;
+    }
+  }
+
+  .lower-items {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 15px;
+    .left-item{
+      width: 50%;
+      .raw-data {
+        height: 300px;
+        font-size: 13px;
+        border: solid;
+        border-width: thin;
+        border-color: #373944;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }  
+    }
+    .right-item{
+      width: 45%;
+      .label-area {
+        height: 300px;
+        font-size: 12px;
+        border: solid;
+        border-width: medium;
+        border-color: #373944;
+        padding-left: 10px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
+    }
+  }
+}
