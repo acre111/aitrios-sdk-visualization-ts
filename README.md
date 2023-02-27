@@ -25,7 +25,7 @@ See the ["Cloud SDK Visualization Tutorial"](https://developer.aitrios.sony-semi
 
 ## Documentation
 ### Functional Specifications
-- [Cloud SDK Cloud SDK Visualization Functional Specifications](https://github.com/SonySemiconductorSolutions/aitrios-sdk-visualization-ts/blob/main/docs/development-docs/CloudSDK_FuncSpec_Visualization.pdf)
+- [Cloud SDK Visualization Functional Specifications](https://github.com/SonySemiconductorSolutions/aitrios-sdk-visualization-ts/blob/main/docs/development-docs/CloudSDK_FuncSpec_Visualization.pdf)
 
 ## Get support
 - [Contact us](https://developer.aitrios.sony-semicon.com/contact-us/)
