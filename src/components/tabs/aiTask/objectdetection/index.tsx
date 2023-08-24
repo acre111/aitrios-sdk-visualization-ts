@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,31 @@
  * limitations under the License.
  */
 
-import { Textarea } from '@chakra-ui/react'
+import { Textarea, Button } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
-import { BoundingBoxProps } from '../../../../hooks/util'
-import BoundingBoxes from '../../../common/boundingboxes'
+import { ObjectDetectionProps, handleFileInputChangeODorCLS, exportLabelDataODorCLS } from '../../../../hooks/util'
+import { OBJECT_DETECTION } from '../../../../pages'
 import styles from './objectdetection.module.scss'
-
-type ObjectDetectionProps = {
-  timestamp: string,
-  image: string,
-  inferences: BoundingBoxProps[] | undefined,
-  inferenceRawData: string | undefined,
-  labelData: string[],
-  setLabelData: (labelData: string[]) => void,
-  probability: number,
-  isDisplayTs: boolean,
-  imageCount: number,
-  setDisplayCount: (displayCount: number) => void
-  setLoadingDialogFlg: (loadingDialogFlg: boolean) => void
-}
+import dynamic from 'next/dynamic'
 
 export const ROWDATA_EXPLANATION = 'Inference Result'
 export const LABEL_EXPLANATION = 'Label Setting'
 
+const BoundingBoxes = dynamic(() => import('../../../common/boundingboxes'), { ssr: false })
+
 export default function ObjectiveDetection (props: ObjectDetectionProps) {
-  const [labelText, setLabelText] = useState<string>(JSON.stringify(props.labelData).replace(/"|\[|\]/g, '').replace(/,/g, '\n'))
+  const [labelTextOD, setLabelTextOD] = useState<string>(JSON.stringify(props.labelData).replace(/"|\[|\]/g, '').replace(/,/g, '\n'))
   const [timeStamp, setTimeStamp] = useState<string>('')
   const [rawData, setRawData] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    props.setLabelData(labelText.split(/\n/))
-  }, [labelText])
+    props.setLabelData(labelTextOD.split(/\n/))
+  }, [labelTextOD])
 
   useEffect(() => {
-    setTimeStamp(props.timestamp)
+    if (props.aiTask === OBJECT_DETECTION) {
+      setTimeStamp(props.timestamp)
+    }
   }, [props.image])
 
   return (
@@ -59,6 +50,7 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
         }
         <div className={styles['boundingboxes-area']}>
           <BoundingBoxes
+            aiTask={props.aiTask}
             boundingBoxes={props.inferences}
             img={props.image}
             confidenceThreshold={props.probability}
@@ -78,7 +70,34 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
         </div>
         <div className={styles['right-item']}>
           <div>{LABEL_EXPLANATION}</div>
-          <Textarea className={styles['label-area']} defaultValue={labelText} onChange={((event) => setLabelText(event.target.value))} resize="none" />
+          <Textarea className={styles['label-area']} value={labelTextOD} onChange={((event) => setLabelTextOD(event.target.value))} resize="none" />
+          <div className={styles['button-area']}>
+            <Button
+              onClick={() => document.getElementById('fileInputOD')?.click()}
+              style={{ color: '#ffffff', backgroundColor: '#2d78be' }}
+              variant='solid'
+              size='md'
+              m={'2'}
+            >
+              Import Labels
+              <input
+                id='fileInputOD'
+                type='file'
+                accept='.json'
+                style={{ display: 'none' }}
+                onChange={(event) => handleFileInputChangeODorCLS(event, setLabelTextOD)}
+              />
+            </Button>
+            <Button
+              onClick={() => exportLabelDataODorCLS(props)}
+              style={{ color: '#ffffff', backgroundColor: '#2d78be' }}
+              variant='solid'
+              size='md'
+              m={'2'}
+            >
+              Export Labels
+            </Button>
+          </div>
         </div>
       </div>
     </div>

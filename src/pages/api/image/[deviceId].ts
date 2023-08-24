@@ -64,17 +64,21 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     res.status(405).json({ message: 'Only GET requests.' })
     return
   }
-  const deviceId: string = req.query.deviceId.toString()
-  const imagePath: string = req.query.imagePath.toString()
+  const deviceId: string | undefined = req.query.deviceId?.toString()
+  const imagePath: string | undefined = req.query.imagePath?.toString()
   const numberOfImages: number = Number(req.query.numberOfImages)
   const skip: number = Number(req.query.skip)
-  const orderBy: string = req.query.orderBy.toString()
+  const orderBy: string | undefined = req.query.orderBy?.toString()
 
-  await getBlob(deviceId, imagePath, numberOfImages, skip, orderBy)
-    .then(result => {
-      const imageData = { buff: result.data.images[0].contents, timestamp: (result.data.images[0].name).replace('.jpg', '') }
-      res.status(200).json(imageData)
-    }).catch(err => {
-      res.status(500).json(err.message)
-    })
+  if (deviceId === undefined || imagePath === undefined || orderBy === undefined) {
+    throw new Error(JSON.stringify({ message: 'Some parameter is undefined.' }))
+  } else {
+    await getBlob(deviceId, imagePath, numberOfImages, skip, orderBy)
+      .then(result => {
+        const imageData = { buff: result.data.images[0].contents, timestamp: (result.data.images[0].name).replace('.jpg', '') }
+        res.status(200).json(imageData)
+      }).catch(err => {
+        res.status(500).json(err.message)
+      })
+  }
 }

@@ -1,0 +1,605 @@
+= Cloud SDK pass:[<br/>] Visualization pass:[<br/>] Tutorial pass:[<br/>] 
+:sectnums:
+:sectnumlevels: 1
+:author: Copyright 2023 Sony Semiconductor Solutions Corporation
+:version-label: Version 
+:revnumber: x.x.x
+:revdate: YYYY - MM - DD
+:trademark-desc1: AITRIOS™ and AITRIOS logos are the registered trademarks or trademarks
+:trademark-desc2: of Sony Group Corporation or its affiliated companies.
+:toc:
+:toc-title: TOC
+:toclevels: 1
+:chapter-label:
+:lang: en
+
+== Change history
+
+|===
+|Date |What/Why
+
+|2022/11/16
+|Initial draft
+
+|2023/1/30
+|Changed for "**Cloud SDK**" 0.2.0
+
+|2023/3/22
+|Added support for local saving +
+Added support for Semantic Segmentation
+
+|2023/4/13
+|Added method to get client ID and secret +
+Followed the renaming of the VS Code extension +
+Fixed parenthesis notation for tool names
+
+|2023/05/26
+|Fixed alternate text to images
+
+|2023/6/6
+|Changed device ID selection to device name selection +
+Added that garbled characters occur in some environments
+
+|2023/6/8
+|Added how to start in a Docker container
+
+|2023/6/20
+|Added that the playback order is disturbed by the number of images
+
+|2023/7/5
+|Added how to customize "**Visualization**"
+|===
+
+== Introduction
+This tutorial shows you how to use "**Visualization**". + 
+"**Visualization**" is provided to see inference results uploaded by the edge AI device to the "**Console**".
+
+[#_precondition]
+== Prerequisite
+=== Connection information
+To use "**Visualization**", you need connection information to access the "**Console**". + 
+The acquired information is used in <<#_Execute_visualization,"Use "Visualization">>. + 
+The required connection information is as follows:
+
+* Client application details
+** Refer to the client application list of "**Portal for AITRIOS**" or register the client application for the sample application if necessary to get the following information: 
+See the "Issuing a Client Secret for SDK" in https://developer.aitrios.sony-semicon.com/en/file/download/portal-user-manual["**Portal User Manual**"] for more information.
+*** Client ID
+*** Secret
++
+** Get the following information from https://developer.aitrios.sony-semicon.com/en/file/download/rest-api-authentication[this material]:
+*** Console endpoint
+*** Portal authorization endpoint
+
+=== Edge AI devices
+In order for the "**Visualization**" to work properly, the edge AI device must have specific settings. + 
+Required settings are as follows:
+
+* AI model and application are deployed
+* AI models based on Object Detection, Classification, and Semantic Segmentation are deployed
+* From the "**Console**" UI, set command parameter file to the following setting:
++
+
+** Mode=1(Image&Inference Result)
+** UploadMethodIR="Mqtt"
+** Other parameters need to be changed depending on the AI model and application content.
+
+
+== Functional overview
+"**Visualization**" specifies the edge AI device registered in the "**Console**" and gets inference results and images. + 
+There are two modes of operation: Realtime Mode, which gets the latest inference results, and History Mode, which gets past inference results.
+
+
+== Operating environment
+"**Visualization**" can be run in one of the following environments:
+
+* GitHub Codespaces (Hereafter referred to as Codespaces)
+* Dev Container using Visual Studio Code (Hereafter referred to as VS Code) and Docker
+* Docker container
+* Node.js
+
+== Set up environment
+
+To set up Codespaces, VS Code, and Docker, see the https://developer.aitrios.sony-semicon.com/en/file/download/sdk-getting-started/["**SDK Getting Started**"]. + 
+To set up and run Node.js on your PC, see the next step.
+
+=== Set up Node.js
+
+. Install Node.js + 
+Get the installer for your environment from https://nodejs.org/en/download/[the official site] and install it. +
++
+IMPORTANT: Use version 16 of Node.js.
+
+. Clone the repository + 
+Clone the "**Visualization**" repository to any directory. If you use the git command, you can clone a repository containing submodules by running the following command:
++
+[source, Bash]
+----
+git clone --recursive https://github.com/SonySemiconductorSolutions/aitrios-sdk-visualization-ts.git
+----
++
+For other cloning methods, see https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository[GitHub Docs].
+
+[#_Execute_visualization]
+== Use "**Visualization**"
+
+Use the connection information prepared in the <<#_precondition,"Prerequisite">>
+
+=== Set connection information
+. Create the [console_access_settings.yaml] under the [src/common] on Codespaces or on an environment that has cloned a repository, and set the connection information.
+
++
+|===
+|src/common/console_access_settings.yaml
+a|
+[source, Yaml]
+----
+console_access_settings:
+  console_endpoint: "Console endpoint"
+  portal_authorization_endpoint: "Portal authorization endpoint"
+  client_secret: "Secret"
+  client_id: "Client ID"
+----
+|===
++
+* Specify the console endpoint in `**console_endpoint**`. +
+* Specify the portal authorization endpoint in `**portal_authorization_endpoint**`. +
+* Specify the secret of the registered application to the `**client_secret**`. +
+* Specify the client ID of the registered application to the `**client_id**`. +
++
+
+IMPORTANT: See the "Issuing a Client Secret for SDK" in https://developer.aitrios.sony-semicon.com/en/file/download/portal-user-manual["**Portal User Manual**"] for how to get client ID and secret. + 
+See the link:++https://developer.aitrios.sony-semicon.com/en/file/download/rest-api-authentication++[this material]  for how to get console endpoint and portal authorization endpoint. + 
+These will give you access to the "**Console**". + 
+Do not publish or share with others and handle with care.
++
+NOTE: To run the "**Visualization**" in a proxy environment, set the `**https_proxy**` environment variable.
+
+
+=== Launch "**Visualization**"
+
+==== How to launch in a Docker container
+
+. Launch terminal in a directory cloned from the repository
+
+. Run the following command in the terminal
++
+[source, Bash]
+----
+docker build . -t visualization-app
+docker run -p 3000:3000 -d visualization-app
+----
+NOTE: If port number 3000 is already in use, it will fail to launch with the error: "failed: port is already allocated". 
+Change the 3000 of the command to an unused port number.
+
+
+. If you want to change the connection information after launching the container, run the following command:
++
+[source, Bash]
+----
+docker cp src/common/console_access_settings.yaml {Container name}:/app/src/common/console_access_settings.yaml
+----
+
+==== How to launch in other environments
+. Launch terminal in Codespaces or a directory cloned from the **Visualization** repository
+. Run the following command to install the packages needed for the cloned "**Visualization**": (No need for Codespaces since they are automatically installed)
++
+[source, Bash]
+----
+npm install
+----
+NOTE: If the error "npm ERR! gyp ERR! build error" occurs when running the preceding command, install the C++ compiler.
+
+. Run the following command in the terminal to launch "**Visualization**": + 
++
+[source, Bash]
+----
+npm run dev
+----
+
+=== Work with "**Visualization**"
+Access "**Visualization**" from your browser and perform various operations.
+
+. Open http://localhost:3000 (For Codespaces, the port forwarded URL) in your browser 
+
+NOTE: If you have changed the port number at launching, you will not be able to access it. 
+Replace 3000 in the URL with the changed port number.
+
+. Specify the target AI model + 
+By selecting the tab at the top left of the screen, you can switch the display mode according to the AI model. + 
+For Object Detection, go to <<#_ObjectDetection,"Object Detection display items">>. + 
+For Classification, go to <<#_Classification,"Classification display items">>. + 
+For Semantic Segmentation, go to <<#_Segmentation,"Segmentation display items">>. + 
+
+. Set parameters for display items + 
+You can set display items such as inference results and TimeStamp. + 
+To change image display settings, go to <<#_DisPlaySetting,"Change image display settings">>. +
+
+. Specify the mode of operation + 
+By selecting the tab at the top right of the screen, you can switch between operation modes. + 
+To visualize the latest inference results, go to <<#_RealtimeMode,"Visualize the latest image/inference results">>. + 
+To visualize past inference results, go to <<#_HistoryMode,"Visualize past images/inference results">>.
+
+. Save data + 
+Images and inference results can be saved locally as images with the inference results overlaid. + 
+To save data、go to <<#_SaveData,"Save data">>. +
+
+[#_ObjectDetection]
+==== Object Detection display items
+* Select the [**Object Detection**] tab at the top left of the screen + 
+By selecting the [**Object Detection**] tab, you can display inference results using the AI model of Object Detection.
++
+image::ObjectDetectionAITask.png[alt="Object Detection display items", width="600"]
+The function of each display part is as follows:
++
+|===
+|Display part |Function 
+
+|[**Display Setting**] button at the top of the screen
+|Opens the inference results display settings dialog
+
+|Image display area in the upper half of the screen
+|Inference results are overlaid on the image taken by the edge AI device and displayed
+
+|[**Inference Result**] at the bottom left of the screen
+|Raw data of inference results gotten from the "**Console**" is displayed
+|[**Label Setting**] at the bottom right of the screen
+|You can list and edit the labels used to display inference results.
+|[**Import Labels**] at the bottom of the screen
+|Loads and displays the label file saved in the local.
+|[**Export Labels**] at the bottom of the screen
+|Saves the displayed label information locally. + 
+To learn how to edit labels, see <<#_Label-setting, "Change the label settings">>
+|===
++
+
+
+[#_Classification]
+==== Classification display items
+* Select the [**Classification**] tab at the top left of the screen + 
+By selecting the [**Classification**] tab, you can display inference results using the AI model of Classification.
++
+image::ClassificationAITask.png[alt="Classification display items", width="600"]
+The function of each display part is as follows:
++
+|===
+|Display part |Function 
+
+|[**Display Setting**] button at the top of the screen
+|Opens the inference results display settings dialog
+
+|Image display area in the upper half of the screen
+|Inference results are overlaid on the image taken by the edge AI device and displayed. + 
+The list on the right displays labels being inferred with the score.
+
+|[**Inference Result**] at the bottom left of the screen
+|Raw data of inference results gotten from the "**Console**" is displayed
+|[**Label Setting**] at the bottom right of the screen
+|You can list and edit the labels used to display inference results.
+|[**Import Labels**] at the bottom of the screen
+|Loads and displays the label file saved in the local.
+|[**Export Labels**] at the bottom of the screen
+|Saves the displayed label information locally. +
+To learn how to edit labels, see <<#_Label-setting, "Change the label settings">>
+|===
++
+[NOTE]
+====
+If the inference result to be visualized is the output of an AI model of Object Detection, the score display of the inference result becomes an outlier. + 
+In that case, set the AI Task to [**Classification**].
+====
+
+[#_Segmentation]
+==== Segmentation display items
+* Select the [**Segmentation**] tab at the top left of the screen + 
+By selecting the [**Segmentation**] tab, you can display inference results using the AI model of Segmentation.
++
+image::SegmentationAITask.png[alt="Segmentation display items", width="600"]
+The function of each display part is as follows:
++
+|===
+|Display part |Function 
+
+|[**Display Setting**] button at the top of the screen
+|Opens the inference results display settings dialog.
+
+|Image display area in the upper half of the screen
+|Inference results are overlaid on the image taken by the edge AI device and displayed.
+The list on the right displays labels being inferred with the score.
+|[**Inference Result**] at the bottom left of the screen
+|Raw data of inference results gotten from the "**Console**" is displayed.
+|[**Label Table**] at the bottom of the screen
+|Displays the label table used to display inference results. +
+|[**Visible**] in [**Label Table**]
+|Displays/Hides the label.
+|[**Id**] in [**Label Table**]
+|Displays the class ID of the label.
+|[**Label**] in [**Label Table**]
+|The label name can be displayed and edited.
+|[**Color**] in [**Label Table**]
+|The color of inference results can be displayed and changed. +
+|[**Add Label**] drop-down at the bottom of the screen
+|Specifies where to add a label to the label table. +
+The setting range is 0 to the final ID of the label table + 1, and the maximum value is the final ID of the label table + 1.
+|[**Add Label**] button at the bottom of the screen
+|Adds a label at the position selected in the left drop-down.
+|[**Delete Label**] drop-down at the bottom of the screen
+|Specifies where to delete a label in the label table. +
+The setting range is 0 to the final ID of the label table, and the maximum value is the final ID of the label table.
+|[**Delete Label**] button at the bottom of the screen
+|Deletes a label at the position selected in the left drop-down.
+|[**Import Labels**] at the bottom of the screen
+|Loads and displays the label file saved in the local.
+|[**Export Labels**] at the bottom of the screen
+|Saves the displayed label information locally. +
+To learn how to edit labels, see <<#_Label-setting, "Change the label settings">>
+|===
+
+
+[#_DisPlaySetting]
+=== Change image display settings
+==== Set display settings in Display Setting +
+. The display settings dialog displays by clicking the [**Display Setting**] button at the top of the screen. +
+. You can set the display of the image display area by changing each parameter. + 
+[**Classification**] and other AI tasks display different items. +
+
+* [**Object Detection**]
++ 
+image::ObjectDetectionDisplaySetting.png[alt="Display Setting for Object Detection", width="600"]
++ 
+The meaning of each parameter is as follows:
++ 
+|===
+|Parameter |Meaning
+
+|[**Probability**] slider |Sets the displayed confidence threshold.
+
+|[**Display Timestamp**] button |Sets whether to display or hide image file timestamps.
+|===
+
+* [**Classification**]
++ 
+image::ClassificationDisplaySetting.png[alt="Display Setting for Classification", width="600"]
++ 
+The meaning of each parameter is as follows:
++ 
+|===
+|Parameter |Meaning
+
+|[**Probability**] slider |Sets the displayed confidence threshold.
+
+|[**Display Timestamp**] button |Sets whether to display or hide image file timestamps.
+
+|[**Display Top Score**] drop-down list |Sets the number of items to display in the inference results list.
+
+|[**Overlay Inference Result**] button |Sets whether to display or hide information with the highest score of inference results.
+
+|[**Overlay Inference Result Color**] button |Sets the display color for information with the highest score of inference results.
+|===
+
+* [**Segmentation**]
++ 
+image::SegmentationDisplaySetting.png[alt="Display Setting for Segmentation", width="600"]
++
+The meaning of each parameter is as follows:
++ 
+|===
+|Parameter |Meaning
+
+|[**Transparency**] slider |Sets the transparency of the inference results to display.
+
+|[**Display Timestamp**] button |Sets whether to display or hide image file timestamps.
+|===
+
+[#_Label-setting]
+==== Change the label settings
+You can change the labels that display on the image by editing the text box in [**Label Setting**] and the contents of [**Label Table**] directly or by importing a label file (json) from [**Import Labels**].
+
+* Edit the text box directly + 
+Write the labels in the order of the class IDs that the AI model identifies. + 
+For [**Object Detection**] and [**Classification**], you can set labels separated by line breaks.
++
+image::LabelSetting.png[alt="Label settings for Object Detection and Classification", width="600"]
++
+For [**Segmentation**], you can display or hide labels, change label names, and specify label colors. +
++
+image::LabelSetting_Seg.png[alt="Label settings for Segmentation", width="600"]
++
+
+In the preceding image sets the class IDs to "Apple", "Orange", and "Banana". +
+
+
+* Load label file (json) + 
+Press the [**Import Labels**] button to read a locally saved label file (json). + 
+Label file formats differ between [**Segmentation**] and other AI tasks. + 
+Refer to the following for the format of the label file (json). +
++
+|===
+|[**Object Detection**]/[**Classification**](json)
+a|
+[source, json]
+----
+{
+  "label": [
+    "Apple",
+    "Orange",
+    "Banana"
+  ]
+}
+----
+|=== 
++
+|===
+|[**Segmentation**](json)
+a|
+[source, json]
+----
+{
+   "labelList": [
+      {
+        "isVisible": true
+        "label": "Apple"
+        "color": "#000000"
+      },
+      {
+        "isVisible": false
+        "label": "Orange"
+        "color": "#0000ff"
+      },
+      {
+        "isVisible": true
+        "label": "Banana"
+        "color": "#ff0000"
+      }
+   ]
+}
+----
+|=== 
++
+In the preceding case sets the class IDs to "Apple", "Orange", and "Banana".
+
+
+[#_RealtimeMode]
+=== Visualize the latest image/inference results
+Realtime Mode lets you visualize the latest inference results and images.
+
+. Select the [**Realtime Mode**] tab at the top right of the screen +
+. Set runtime parameters + 
+When Realtime Mode is selected, the right side of the screen switches to the following content: +
++
+image::RealtimeModeSetting.png[alt="Realtime Mode display items", width="700"]
++
+The meaning of each parameter is as follows:
++
+|===
+|Parameter |Meaning 
+
+|[**Device Name**] drop-down list
+|Selects the Device Name of the edge AI device registered in the "**Console**"
+
+|[**Reload**] button
+|Reloads Device Name list +
+[**Device Name**] is left unselected after pressing the button
+
+|[**Polling Interval**] slider
+|Sets the polling interval when getting data from the "**Console**" +
+The polling interval is displayed numerically to the right of the slider.
+
+|[**Start Upload**]/[**Stop Upload**] button
+|Starts/Stops uploading images and inference results
+
+|[**Start Polling**]/[**Stop Polling**] button
+|Starts/Stops getting and displaying the latest image/inference results from the "**Console**"
+
+|===
++
+
+. Instruct the edge AI device to start inference + 
+Press the [**Start Upload**] to instruct the edge AI device to start inference. + 
+Starting inference starts uploading images and inference results from the edge AI device to the "**Console**".
+
+. Start updating inference result display + 
+Press the [**Start Polling**] to display images and inference results gotten from the "**Console**" on the left side of the screen. + 
+Gets the latest image and inference results and updates the display at the frequency set by [**Polling Interval**].
+
+. Stop updating inference result display + 
+Press the [**Stop Polling**] to stop updating display and getting images and inference results from the "**Console**".
+
+. Instruct the edge AI device to stop inference + 
+Press the [**Stop Upload**] to instruct the edge AI device to stop inference. + 
+Stopping inference also stops uploading images and inference results from the edge AI device to the "**Console**".
++
+[NOTE]
+====
+Pressing the [**Stop Upload**] stops both uploading inference results and display updates.
+====
+
+
+[#_HistoryMode]
+=== Visualize past images/inference results
+History Mode lets you visualize past inference results and images.
+
+. Select the [**History Mode**] tab at the top right of the screen +
+. Set runtime parameters + 
+When History Mode is selected, the right side of the screen switches to the following content: +
++
+image::HistoryModeSetting.png[alt="History Mode display items", width="700"]
++
+The meaning of each parameter is as follows:
++
+|===
+|Parameter |Meaning 
+
+|[**Device Name**] drop-down list
+|Selects the Device Name of the edge AI device registered in the "**Console**"
+
+|[**Reload**] button
+|Reloads Device Name list +
+[**Device Name**] is left unselected after pressing the button
+
+|[**Image Selection**] slider
+|Sets the index of the inference source image to start displaying +
+The index is displayed numerically to the right of the slider +
+When the value of the slider is changed, updates to inference source image with date and time tied to index
+
+|[**Sub Directory**] drop-down list
+|Selects the Sub Directory of images stored in the "**Console**"
+
+|[**Interval Time**] slider
+|Sets the playing interval when updating inference source images +
+The playing interval is displayed numerically to the right of the slider
+
+|[**Start Playing**]/[**Stop Playing**] button
+|Starts/Stops updating inference source images
+
+|[**Save Data**] button
+|Displays Save Data menu
+|===
++
+
+. Start displaying inference results + 
+Press the [**Start Playing**] to display images and inference results in the directory selected by the [**Sub Directory**] on the left side of the screen. + 
+The display is sequentially updated at intervals set by [**Interval Time**] from the index set by [**Image Selection**]. + 
+. Stop displaying inference results + 
+Pressing the [**Stop Upload**] stops display updates. + 
+
+[#_SaveData]
+=== Save data
+. Press the [**Save Data**] button in [**History Mode**] to display Save Data menu. + 
+The [**Save Data**] button can be pressed by specifying the [**Device Name**] and [**Sub Directory**].
++
+image::SaveDialog.png[alt="Display items in the Save Data menu", width="600"]
++
+The meaning of each parameter is as follows:
++
+|===
+|Parameter |Meaning 
+
+|[**Type**] radio button
+|Selects the image save format. +
+[**Original Image**] saves images and inference results. +
+[**Overlaid Image**] saves images with the inference results overlaid according to display settings, and inference results. +
+
+|[**Range**] slider
+|Sets a range for saving the data. +
+|[**Save**] button
+|Press to display the file save dialog. +
+The save process is started by specifying where to save. +
+|===
+. Set each parameter and press the [**Save**] button.
+. Set where to save and press the [**Save**] button to start the save process.
+. A progress bar displays during the save process.  +
+. When the save process is complete, the data is saved to the specified destination. 
+
+
+== How to customize "**Visualization**"
+By customizing "**Visualization**", you can visualize inference results using your own AI models and Wasm. + 
+For customization procedures, see link:CloudSDK_CustomizeGuideline_Visualization.adoc[**"Cloud SDK Visualization Customization Guidelines"**].
+
+== Assumption/Restriction
+*  In some environments, setting a label name other than half-width alphanumeric characters may result in garbled characters when saving images.
+* If there are more than 1000 images in a subdirectory in History Mode or Realtime Mode, the playback order of the images may be disturbed.
+
+
+=== About base AI Models supported by "**Visualization**"
+The supported base AI models are Object Detection, Classification, and Semantic Segmentation.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 import { Client, Config } from 'consoleaccesslibrary'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { CLASSIFICATION, OBJECT_DETECTION } from '../..'
+import { CLASSIFICATION, OBJECT_DETECTION, SEGMENTATION } from '../..'
 import { getConsoleSettings } from '../../../common/config'
+import { getDateDecrement, getDateIncrement } from '../../../hooks/util'
 import { deserialize } from '../../../hooks/deserialize/deserializeFunction'
 
 /**
@@ -38,19 +39,33 @@ const getInferenceResults = async (deviceId: string, timestamp: string, aiTask: 
   } catch (err) {
     throw new Error(JSON.stringify({ message: 'Wrong setting. Check the settings.' }))
   }
-  const res = await calClient?.insight.getInferenceResults(deviceId, undefined, 1, 1, timestamp)
+  const filter = `EXISTS(SELECT VALUE i FROM i IN c.Inferences WHERE i.T >= "${getDateDecrement(timestamp)}" AND i.T <= "${getDateIncrement(timestamp)}")`
+  const res = await calClient?.insight.getInferenceResults(deviceId, filter, 1, 1, undefined)
   if (res.status !== 200) {
     throw new Error(JSON.stringify(res.response.data))
   }
-  if (res.data.length === 0 || !res.data[0].inferences[0].O) {
-    throw new Error(JSON.stringify({ message: 'Cannot get inferences.' }))
+
+  const errorMsg = JSON.stringify({ message: 'Cannot get inferences.' })
+  try {
+    if (res.data.length === 0 || !res.data[0].inference_result.Inferences[0].O) {
+      throw new Error(errorMsg)
+    }
+  } catch (e) {
+    throw new Error(errorMsg)
   }
 
   try {
-    const deserializedList = await deserialize(res.data[0].inferences[0].O, aiTask)
+    const deserializedList = await deserialize(res.data[0].inference_result.Inferences[0].O, aiTask)
     const deserializedRawData = res.data[0]
-    deserializedRawData.inferences[0].O = deserializedList
-    return deserializedRawData
+    if (deserializedList !== undefined) {
+      if (aiTask === OBJECT_DETECTION || aiTask === CLASSIFICATION) {
+        deserializedRawData.inference_result.Inferences[0].O = deserializedList
+      } else if (aiTask === SEGMENTATION) {
+        const T = deserializedRawData.inference_result.Inferences[0].T
+        deserializedRawData.inference_result.Inferences[0] = { T, ...deserializedList }
+      }
+      return deserializedRawData
+    }
   } catch (e) {
     throw new Error(JSON.stringify({ message: 'The specified AITask and data AITask may not match.\rPlease check the specified AITask.' }))
   }
@@ -73,20 +88,23 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     res.status(405).json({ message: 'Only GET requests.' })
     return
   }
-  const deviceId: string = req.query.deviceId.toString()
-  const timestamp: string = req.query.timestamp.toString()
-  const aiTask: string = req.query.aiTask.toString()
+  const deviceId: string | undefined = req.query.deviceId?.toString()
+  const timestamp: string | undefined = req.query.timestamp?.toString()
+  const aiTask: string | undefined = req.query.aiTask?.toString()
 
-  if (aiTask !== OBJECT_DETECTION && aiTask !== CLASSIFICATION) {
-    res.status(400).json({ message: 'Only objectDetection or classification.' })
-    return
+  if (deviceId === undefined || timestamp === undefined || aiTask === undefined) {
+    throw new Error(JSON.stringify({ message: 'Some parameter is undefined.' }))
+  } else {
+    if (aiTask !== OBJECT_DETECTION && aiTask !== CLASSIFICATION && aiTask !== SEGMENTATION) {
+      res.status(400).json({ message: 'Only objectDetection or classification or segmentation.' })
+      return
+    }
+    await getInferenceResults(deviceId, timestamp, aiTask)
+      .then((result) => {
+        const inferenceData = { inferencesList: result }
+        return res.status(200).json(inferenceData)
+      }).catch(err => {
+        return res.status(500).json(err.message)
+      })
   }
-
-  await getInferenceResults(deviceId, timestamp, aiTask)
-    .then((result) => {
-      const inferenceData = { inferencesList: result }
-      return res.status(200).json(inferenceData)
-    }).catch(err => {
-      return res.status(500).json(err.message)
-    })
 }

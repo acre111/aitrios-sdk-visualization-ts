@@ -55,11 +55,16 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     res.status(405).json({ message: 'Only GET requests.' })
     return
   }
-  const deviceId: string = req.query.deviceId.toString()
-  await getsubDirectoryList(deviceId)
-    .then(result => {
-      res.status(200).json(result)
-    }).catch(err => {
-      res.status(500).json(err.message)
-    })
+
+  const deviceId: string | undefined = req.query.deviceId?.toString()
+  if (deviceId === undefined) {
+    throw new Error(JSON.stringify({ message: 'Device ID is undefined.' }))
+  } else {
+    await getsubDirectoryList(deviceId)
+      .then(result => {
+        res.status(200).json(result)
+      }).catch(err => {
+        res.status(500).json(err.message)
+      })
+  }
 }

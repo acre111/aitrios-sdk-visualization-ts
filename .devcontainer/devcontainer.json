@@ -1,12 +1,16 @@
 {
 	"name": "visualization app",
-	"dockerComposeFile": "docker-compose.yml",
-	// The 'service' property is the name of the service for the container that VS Code should
-	// use. Update this value and .devcontainer/docker-compose.yml to the real service name.
-	"service": "app-visualization",
-	// The optional 'workspaceFolder' property is the path VS Code should open by default when
-	// connected. This is typically a volume mount in .devcontainer/docker-compose.yml
 	"workspaceFolder": "/workspace",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": "..",
+		"args": {
+			// variant for typescript-node devcontainer
+			"VARIANT": "16-bullseye"
+		}
+	},
+	"runArgs": ["--init"],
 
 	// Set *default* container specific settings.json values on container create.
 	"settings": { 
@@ -38,7 +42,7 @@
 	"customizations": {
 		"codespaces": {
 			"repositories": {
-				"SonySemiconductorSolutions/aitrios-sdk-console-access-lib-ts": {
+				"SonySemiconductorSolutions/aitrios-sdk-typescript-dev": {
 					"permissions": {
 						"contents": "read"
 					}

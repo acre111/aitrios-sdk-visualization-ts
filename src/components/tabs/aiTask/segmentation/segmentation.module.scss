@@ -1,0 +1,71 @@
+.segmentation-container {
+  margin: 10px 1em;
+  .timestamp-area {
+    background-color: yellow;
+    display: inline-block;
+    color: #a97443;
+  }
+  .upper-items {
+    height: 300;
+
+    .timestamp-area {
+      background-color: yellow;
+      display: inline-block;
+      color: #a97443;
+    }
+
+    .boundingboxes-area {
+      margin: 0px 10px 10px 0px;
+    }
+  }
+  .select {
+    border: 0.6px solid #373944;
+    color: #373944;
+    margin-left: 1rem;
+    margin-right: 0.5rem;
+  }
+  
+  .lower-items {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 15px;
+
+    .left-item{
+      width: 450px;
+      padding-right: 10px;
+
+      .raw-data {
+        height: 300px;
+        font-size: 13px;
+        border: solid;
+        border-width: thin;
+        border-color: #373944;
+        overflow-y: scroll;
+        overflow-x: scroll;
+        white-space: pre;
+      }  
+    }
+
+    .right-item{
+      width: 450px;
+      padding-left: 10px;
+
+      .table-area {
+        height: 300px;
+        font-size: 12px;
+        border: solid;
+        border-width: medium;
+        border-color: #373944;
+        overflow-y: scroll;
+        margin-bottom: 10px;
+      }
+
+      .button-area {
+        display: flex;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+  

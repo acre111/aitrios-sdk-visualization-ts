@@ -16,9 +16,10 @@
 
 import Head from 'next/head'
 import React from 'react'
+import styles from './layout.module.scss'
 
 type LayoutType = {
-  children: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>,
+  children: React.ReactNode
   title?: string
 }
 
@@ -30,18 +31,7 @@ export default function Layout (props: LayoutType) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <header>
-        <style jsx>{`
-                    background-color: #505158;
-                    width: 100%;
-                    height: 60px;
-                    color: white;
-                    font-size: 20px;
-                    line-height: 24px;
-                    display: flex;
-                    align-items: center;
-                    padding-left: 16px;
-                `}</style>
+      <header className={styles['header-area']}>
         {props.title}
       </header>
       {props.children}

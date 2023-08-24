@@ -57,13 +57,18 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     res.status(405).json({ message: 'Only GET requests.' })
     return
   }
-  const deviceId: string = req.query.deviceId.toString()
-  const subDirectory: string = req.query.subDirectory.toString()
-  await totalImageCount(deviceId, subDirectory)
-    .then((result: number) => {
-      const totalImageCountObj = { totalImageCount: result }
-      res.status(200).json(totalImageCountObj)
-    }).catch(err => {
-      res.status(500).json(err.message)
-    })
+  const deviceId: string | undefined = req.query.deviceId?.toString()
+  const subDirectory: string | undefined = req.query.subDirectory?.toString()
+
+  if (deviceId === undefined || subDirectory === undefined) {
+    throw new Error(JSON.stringify({ message: 'Some parameter is undefined.' }))
+  } else {
+    await totalImageCount(deviceId, subDirectory)
+      .then((result: number) => {
+        const totalImageCountObj = { totalImageCount: result }
+        res.status(200).json(totalImageCountObj)
+      }).catch(err => {
+        res.status(500).json(err.message)
+      })
+  }
 }
