@@ -1,0 +1,227 @@
+﻿= Cloud SDK pass:[<br/>] Visualization pass:[<br/>] Customization Guidelines pass:[<br/>]
+:sectnums:
+:sectnumlevels: 1
+:author: Copyright 2023 Sony Semiconductor Solutions Corporation
+:version-label: Version 
+:revnumber: x.x.x
+:revdate: YYYY - MM - DD
+:trademark-desc1: AITRIOS™ and AITRIOS logos are the registered trademarks or trademarks
+:trademark-desc2: of Sony Group Corporation or its affiliated companies.
+:toc:
+:toc-title: TOC
+:toclevels: 1
+:chapter-label:
+:lang: en
+
+== Change history
+
+|===
+|Date |What/Why
+
+|2023/7/5
+|Initial draft
+
+|===
+
+== Introduction
+This book describes how to customize "**Visualization**" if you want to visualize inference results using your own AITask and Wasm. + 
+See this book after you have identified the format from the three AITasks: Object Detection, Classification, and Segmentation. + 
+If you want to see how the inference results are visualized for each AITask, see link:CloudSDK_FuncSpec_Visualization.adoc[**"Cloud SDK Visualization Functional Specifications"**].
+
+== Flow of deserialization in "**Visualization**"
+1. `**src/hooks/deserialize/deserializeFunction.ts**` identifies the selected AITask and invokes the process in 2 to deserialize the received data.
+
+2. The following file, which is in the same hierarchy as `**src/hooks/deserialize/deserializeFunction.ts**` deserializes using auto-generated code based on the FBS file.
+- `**src/hooks/deserialize/deserializeObjectDetection.ts**`
+- `**src/hooks/deserialize/deserializeClassification.ts**`
+- `**src/hooks/deserialize/deserializeSegmentation.ts**`
+
+3. The deserialized data is used on the "**Visualization**" screen.
+
+== Procedure and details of the change
+[#_CodeUpdate]
+=== Create and deploy auto-generated code
+1. Create auto-generated code based on the FBS file.
++ 
+See link:https://github.com/SonySemiconductorSolutions/aitrios-sdk-deserialization-sample/blob/main/docs/development-docs/CloudSDK_Tutorial_DeserializeSample.adoc[**"Cloud SDK Deserialize Sample Tutorial"**] 
+2. Replace the code in the given directory for each AITask with the code you created.
++
+.File path to store for each AITask
+|===
+|AITask |File path 
+
+|Object Detection
+|`**src/hooks/deserialize/objectdetection/...**`
+
+|Classification
+|`**src/hooks/deserialize/classification/...**`
+
+|Segmentation
+|`**src/hooks/deserialize/segmentation/...**`
+
+|===
+
+=== Modify the source code
+- The following table lists the files that will be modified in the subsequent procedures:
++
+.Files to be modified for each AITask
+|===
+|AITask |File path 
+
+|Object Detection
+|`**src/hooks/deserialize/deserializeObjectDetection.ts**`
+
+|Classification
+|`**src/hooks/deserialize/deserializeClassification.ts**`
+
+|Segmentation
+|`**src/hooks/deserialize/deserializeSegmentation.ts**`
+
+|===
+
+==== Modify the file to import
+
+1. Modify the file that invoke auto-generated code.
+
+- Object Detection
++
+Modify line 2~4 of the following code at the top of the file to refer to the auto-generated code.
+[source, typescript]
++
+----
+import * as flatbuffers from 'flatbuffers'
+import { ObjectDetectionTop } from './objectdetection/object-detection-top'
+import { BoundingBox } from './objectdetection/bounding-box'
+import { BoundingBox2d } from './objectdetection/bounding-box2d'
+----
+
+
+- Classification
++
+Modify line 2 of the following code at the top of the file to refer to the auto-generated code.
+[source, typescript]
++
+----
+import * as flatbuffers from 'flatbuffers'
+import { ClassificationTop } from './classification/classification-top'
+----
+
+- Segmentation
++
+Modify line 2~3 of the following code at the top of the file to refer to the auto-generated code.
+[source, typescript]
++
+----
+import * as flatbuffers from 'flatbuffers'
+import { SemanticSegmentationTop } from './segmentation/semantic-segmentation-top'
+import { SemanticSegmentationData } from './segmentation/semantic-segmentation-data'
+----
+
+==== Modify the object declaration
+1. Use the following property descriptions to assign appropriate values.
++
+IMPORTANT: Renaming a property will cause an error and not work properly.
+
+- Object Detection
++
+[source, typescript]
+----
+res = {
+  class_id: Number(objList.classId()),
+  score,
+  left: Number(bbox2d.left()),
+  top: Number(bbox2d.top()),
+  right: Number(bbox2d.right()),
+  bottom: Number(bbox2d.bottom())
+}
+----
++
+|===
+|Property |Description
+
+|class_id
+|A number indicating the inferred class ID. +
+It is used to associate with the label set on the screen and display the label on the image.
+
+|score
+|A number indicating the inference probability. +
+When the inference result is drawn on the image, it is displayed in % as the inference probability.
+
+|left
+|A number indicating the coordinates of the left of the bounding box. +
+It is used to overlay inference results on images.
+
+|top
+|A number indicating the coordinates of the top of the bounding box. +
+It is used to overlay inference results on images.
+
+|right
+|A number indicating the coordinates of the right of the bounding box. +
+It is used to overlay inference results on images.
+
+|bottom
+|A number indicating the coordinates of the bottom of the bounding box. +
+It is used to overlay inference results on images.
+
+|===
+
+- Classification
++
+[source, typescript]
+----
+res = {
+  class_id: Number(clsList.classId()),
+  score
+}
+----
++
+|===
+|Property |Description
+
+|class_id
+|A number indicating the inferred class ID. +
+It is used to associate with the label set on the screen and display the label in the list on the right side of the image display area.
+
+|score
+|A number indicating the inference probability. +
+In the list on the right side of the image display area, it is displayed in % as the inference probability along with the label. 
+
+|===
+
+- Segmentation
++
+[source, typescript]
+----
+const deserializedSegmentationData: Inference = {
+  height: Number(readsegData.height()),
+  width: Number(readsegData.width()),
+  classIdMap,
+  numClassId: Number(readsegData.numClassId()),
+  scoreMap
+}
+----
++
+|===
+|Property |Description 
+
+|height
+|A number indicating the height of overlaid images. +
+It is used to generate overlaid images.
+
+|width
+|A number indicating the width of overlaid images. +
+It is used to generate overlaid images.
+
+|classIdMap
+|Numeric array indicating inferred `**class_id**` per pixel. +
+After the overlaid image is generated, it is used as an object identification to add color according to the label settings on the screen.
+
+|numClassId
+|A number indicating how many `**class_id**` are candidates for inference results. +
+When coloring overlaid images, if `**numClassId**` is greater than or equal to 2, there are multiple inference results per pixel. In this case, checks the `**scoreMap**` by `**numClassId**` and color the one with higher inference probability.
+
+|scoreMap
+|Numeric array indicating inference probability per pixel. +
+After the overlaid image is generated, it is used to add color according to the label settings on the screen.
+
+|===

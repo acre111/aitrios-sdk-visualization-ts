@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,23 @@
 import React, { useEffect, useState } from 'react'
 import { Group, Image, Label, Layer, Rect, Stage, Tag, Text } from 'react-konva'
 import { BoundingBoxProps } from '../../../hooks/util'
+import { OBJECT_DETECTION } from '../../../pages'
 
 export type BoundingBoxesProps = {
-  img?: string | null,
-  boundingBoxes: BoundingBoxProps[] | undefined,
-  confidenceThreshold: number,
-  label: string[],
-  inferenceRawData: string | undefined,
+  aiTask: string
+  img?: string | null
+  boundingBoxes: BoundingBoxProps[] | undefined
+  confidenceThreshold: number
+  label: string[]
+  inferenceRawData: string | undefined
   setRawData: (inferenceRawData: string | undefined) => void
-  imageCount: number,
-  setDisplayCount: (displayCount: number) => void,
+  imageCount: number
+  setDisplayCount: (displayCount: number) => void
   setLoadingDialogFlg: (loadingDialogFlg: boolean) => void
 }
 
 const BoundingBoxes = ({
+  aiTask,
   boundingBoxes,
   img,
   confidenceThreshold,
@@ -48,9 +51,10 @@ const BoundingBoxes = ({
   const [canvasHeight, setCanvasHeight] = useState<number>(360)
   const [boundingBoxesData, setBoundingBoxesData] = useState<BoundingBoxProps[] | undefined>()
   const labelText = (label: string[], confidence: number, idx: number) => `${label[idx]} ${Math.round(confidence * 100)}%`
+  const SCALE = 1
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && aiTask === OBJECT_DETECTION) {
       const image = new window.Image()
       if (typeof img === 'string') {
         image.src = img
@@ -70,7 +74,7 @@ const BoundingBoxes = ({
   return (
     <div style={ { border: '1px solid black', width: canvasWidth, height: canvasHeight }}>
     { state !== null && boundingBoxesData !== undefined
-      ? <Stage width={canvasWidth} height={canvasHeight}>
+      ? <Stage width={canvasWidth} height={canvasHeight} scaleX={SCALE} scaleY={SCALE}>
       <Layer>
         <Image
           image={state}
@@ -89,7 +93,7 @@ const BoundingBoxes = ({
             width={320}
           />}
         {boundingBoxesData.length > 0 && boundingBoxesData
-          .filter((bb: BoundingBoxProps) => Math.round(bb.confidence * 100) > confidenceThreshold)
+          .filter((bb: BoundingBoxProps) => Math.round(bb.confidence * 100) >= confidenceThreshold)
           .map((bb: BoundingBoxProps, idx: number) => {
             return <Group key={idx}>
               <Rect

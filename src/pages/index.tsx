@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,45 @@ import React, { useEffect, useState } from 'react'
 import LoadingDialog from '../components/common/dialog/loading'
 import Layout from '../components/common/layout'
 import SettingMenu from '../components/common/menu/settingmenu'
-import Classification from '../components/tabs/aiTask/classification'
+import DropDownList from '../components/common/dropdownlist'
+import DefaultButton from '../components/common/button/defaultbutton'
+import ReloadSVG from '../components/common/button/defaultbutton/reload-svg'
 import ObjectiveDetection from '../components/tabs/aiTask/objectdetection'
 import History from '../components/tabs/mode/history'
 import Realtime from '../components/tabs/mode/realtime'
 import useInterval from '../hooks/useInterval'
-import { BoundingBoxProps, ClsInferenceProps, PollingData, PollingHandlerProps, setDataProps, pollingHandler, setData } from '../hooks/util'
+import { BoundingBoxProps, ClsInferenceProps, SegInferenceProps, PollingData, PollingHandlerProps, setDataProps, pollingHandler, setData, ErrorData, handleResponseErr, SegmentationLabelType, DeviceListData } from '../hooks/util'
 import styles from '../styles/main-page.module.scss'
+import dynamic from 'next/dynamic'
 
 export const REALTIME_MODE = 'realtimeMode'
 export const HISTORY_MODE = 'historyMode'
 export const OBJECT_DETECTION = 'objectDetection'
 export const CLASSIFICATION = 'classification'
+export const SEGMENTATION = 'segmentation'
+
+const Classification = dynamic(() => import('../components/tabs/aiTask/classification'), { ssr: false })
+const Segmentation = dynamic(() => import('../components/tabs/aiTask/segmentation'), { ssr: false })
 
 function Home () {
   const [aiTask, setAiTask] = useState<string>(OBJECT_DETECTION)
   const [mode, setMode] = useState<string>(REALTIME_MODE)
   const [timestamp, setTimestamp] = useState<string>('')
   const [image, setImage] = useState<string>('')
+  const [imageCls, setImageCls] = useState<string>('')
+  const [imageSEG, setImageSEG] = useState<string>('')
   const [inferencesOD, setInferencesOD] = useState<BoundingBoxProps[] | undefined>(undefined)
   const [inferencesCls, setInferencesCls] = useState<ClsInferenceProps[] | undefined>(undefined)
+  const [inferencesSEG, setInferencesSEG] = useState<SegInferenceProps | undefined>(undefined)
+
   const [inferenceRawData, setInferencesRawData] = useState<string | undefined>(undefined)
-  const [labelData, setLabelData] = useState<string[]>(['1', '2', '3', '4', '5'])
+  const [labelDataOD, setLabelDataOD] = useState<string[]>(['id0', 'id1', 'id2', 'id3', 'id4'])
+  const [labelDataCLS, setLabelDataCLS] = useState<string[]>(['id0', 'id1', 'id2', 'id3', 'id4'])
+  const [labelDataSEG, setLabelDataSEG] = useState<SegmentationLabelType[]>([
+    { isVisible: true, label: 'label1', color: '#000000' },
+    { isVisible: false, label: 'label2', color: '#0000ff' },
+    { isVisible: true, label: 'label3', color: '#ff0000' }
+  ])
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [probability, setProbability] = useState<number>(0)
   const [isDisplayTs, setIsDisplayTs] = useState<boolean>(true)
@@ -55,10 +72,12 @@ function Home () {
   const [imageCount, setImageCount] = useState<number>(0)
   const [totalCount, setTotalCount] = useState<number>(1)
   const [loadingDialogFlg, setLoadingDialogFlg] = useState<boolean>(false)
-  const [deviceIdList, setDeviceIdList] = useState<string[]>([])
+  const [deviceIdList, setDeviceIdList] = useState<DeviceListData>({})
   const [isFirst, setIsFirst] = useState<boolean>(true)
   const [displayCount, setDisplayCount] = useState<number>(-1)
   const [pollingData, setPollingData] = useState<PollingData | undefined>(undefined)
+
+  const [transparency, setTransparency] = useState<number>(50)
 
   const pollingHandlerProps: PollingHandlerProps = {
     deviceId,
@@ -79,12 +98,15 @@ function Home () {
     imageCount,
     totalCount,
     setImage,
+    setImageCls,
+    setImageSEG,
     setTimestamp,
     setImageCount,
     setIsFirst,
     setInferencesRawData,
     setInferencesOD,
     setInferencesCls,
+    setInferencesSEG,
     setLoadingDialogFlg
   }
 
@@ -114,12 +136,19 @@ function Home () {
       <Layout title="edge AI device Visualization">
         <div className={styles['main-page-container']}>
           <div className={styles['main-page-stage']}>
-            <Tabs className={styles['aitask-tabs']} onChange={(taskNum: number) => {
-              setAiTask(taskNum === 0 ? OBJECT_DETECTION : CLASSIFICATION)
+            <Tabs isFitted className={styles['aitask-tabs']} onChange={(taskNum: number) => {
+              if (taskNum === 0) {
+                setAiTask(OBJECT_DETECTION)
+              } else if (taskNum === 1) {
+                setAiTask(CLASSIFICATION)
+              } else if (taskNum === 2) {
+                setAiTask(SEGMENTATION)
+              }
             }}>
               <TabList className={styles['aitask-tablist']}>
                 <Tab isDisabled={isPlaying || isUploading}>Object Detection</Tab>
                 <Tab isDisabled={isPlaying || isUploading}>Classification</Tab>
+                <Tab isDisabled={isPlaying || isUploading}>Segmentation</Tab>
               </TabList>
               <div className={styles['display-setting-button']}>
                 {aiTask === OBJECT_DETECTION
@@ -131,7 +160,10 @@ function Home () {
                     isDisplayTs={isDisplayTs}
                     setIsDisplayTs={setIsDisplayTs}
                   />
-                  : <SettingMenu
+                  : null
+                }
+                {aiTask === CLASSIFICATION
+                  ? <SettingMenu
                     aiTask={aiTask}
                     mode={mode}
                     probability={probability}
@@ -145,17 +177,38 @@ function Home () {
                     overlayIRC={overlayIRC}
                     setOverlayIRC={setOverlayIRC}
                   />
+                  : null
+                }
+                {aiTask === SEGMENTATION
+                  ? <SettingMenu
+                    aiTask={aiTask}
+                    mode={mode}
+                    probability={probability}
+                    setProbability={setProbability}
+                    isDisplayTs={isDisplayTs}
+                    setIsDisplayTs={setIsDisplayTs}
+                    displayScore={displayScore}
+                    setDisplayScore={setDisplayScore}
+                    isOverlayIR={isOverlayIR}
+                    setIsOverlayIR={setIsOverlayIR}
+                    overlayIRC={overlayIRC}
+                    setOverlayIRC={setOverlayIRC}
+                    transparency={transparency}
+                    setTransparency={setTransparency}
+                  />
+                  : null
                 }
               </div>
               <TabPanels>
                 <TabPanel className={styles['aitask-tab-panel']}>
                   <ObjectiveDetection
+                    aiTask={aiTask}
                     timestamp={timestamp}
                     image={image}
                     inferences={inferencesOD}
                     inferenceRawData={inferenceRawData}
-                    labelData={labelData}
-                    setLabelData={setLabelData}
+                    labelData={labelDataOD}
+                    setLabelData={setLabelDataOD}
                     probability={probability}
                     isDisplayTs={isDisplayTs}
                     imageCount={imageCount}
@@ -165,12 +218,13 @@ function Home () {
                 </TabPanel>
                 <TabPanel className={styles['aitask-tab-panel']}>
                   <Classification
+                    aiTask={aiTask}
                     timestamp={timestamp}
-                    image={image}
+                    image={imageCls}
                     inferences={inferencesCls}
                     inferenceRawData={inferenceRawData}
-                    labelData={labelData}
-                    setLabelData={setLabelData}
+                    labelData={labelDataCLS}
+                    setLabelData={setLabelDataCLS}
                     probability={probability}
                     isDisplayTs={isDisplayTs}
                     displayScore={displayScore}
@@ -183,9 +237,24 @@ function Home () {
                     setIsFirst={setIsFirst}
                   />
                 </TabPanel>
+                <TabPanel className={styles['aitask-tab-panel']}>
+                  <Segmentation
+                    aiTask={aiTask}
+                    timestamp={timestamp}
+                    inferenceRawData={inferenceRawData}
+                    image={imageSEG}
+                    inferences={inferencesSEG}
+                    transparency={transparency}
+                    isDisplayTs={isDisplayTs}
+                    labelDataSEG={labelDataSEG}
+                    setLabelDataSEG={setLabelDataSEG}
+                    imageCount={imageCount}
+                    setDisplayCount={setDisplayCount}
+                  />
+                </TabPanel>
               </TabPanels>
             </Tabs>
-            <Tabs className={styles['mode-tabs']} onChange={(tabNum: number) => {
+            <Tabs isFitted className={styles['mode-tabs']} onChange={(tabNum: number) => {
               switch (tabNum) {
                 case 0:
                   setMode(REALTIME_MODE)
@@ -199,6 +268,47 @@ function Home () {
                 <Tab isDisabled={isPlaying || isUploading}>Realtime Mode</Tab>
                 <Tab isDisabled={isPlaying || isUploading}>History Mode</Tab>
               </TabList>
+              <div className={styles['deviceid-area']}>
+                Device Name
+                <DropDownList
+                    id={'device-id-list'}
+                    name={deviceId} className={isPlaying || isUploading ? styles.disabled : styles.select}
+                    list={Object.keys(deviceIdList)}
+                    onChange={(event) => { setDeviceId(deviceIdList[event.target.value]) }}
+                    disabled={mode === REALTIME_MODE
+                      ? (isUploading)
+                      : (isPlaying)
+                    }
+                    defaultSpace={true}
+                />
+                <DefaultButton isLoading={false}
+                  icon={<ReloadSVG />}
+                  text={'Reload'}
+                  disabled={mode === REALTIME_MODE
+                    ? (isUploading)
+                    : (isPlaying)
+                  }
+                  action={async () => {
+                    setDeviceId('')
+                    setDeviceIdList({})
+                    setLoadingDialogFlg(true)
+                    const res = await fetch('/api/deviceInfo/deviceInfo', { method: 'GET' })
+                    setLoadingDialogFlg(false)
+                    if (res.status === 200) {
+                      await res.json().then((data) => {
+                        if (Object.keys(data).length === 0) {
+                          return window.alert('Connected device not found.')
+                        }
+                        setDeviceIdList(data)
+                      })
+                    } else {
+                      const errorMessage: ErrorData = await res.json()
+                      handleResponseErr(errorMessage)
+                    }
+                  }
+                }
+                />
+              </div>
               <TabPanels>
                 <TabPanel className={styles['realtime-mode-block']}>
                   <Realtime
@@ -241,6 +351,15 @@ function Home () {
                     setIsFirst={setIsFirst}
                     displayCount={displayCount}
                     setDisplayCount={setDisplayCount}
+                    aiTask={aiTask}
+                    labelDataOD={labelDataOD}
+                    labelDataCLS={labelDataCLS}
+                    labelDataSEG={labelDataSEG}
+                    isDisplayTs={isDisplayTs}
+                    probability={probability}
+                    isOverlayIR={isOverlayIR}
+                    overlayIRC={overlayIRC}
+                    transparency={transparency}
                   />
                 </TabPanel>
               </TabPanels>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,27 @@
 
 import { Box, Slider, SliderFilledTrack, SliderThumb, SliderTrack } from '@chakra-ui/react'
 import React from 'react'
+import Nouislider from 'nouislider-react'
+import 'nouislider/distribute/nouislider.css'
 import styles from './slider.module.scss'
 import SliderThumbSVG from './sliderthumb-svg'
 
 type SliderProps = {
-  icon: JSX.Element,
-  isPlaying? : boolean,
-  currValue: number,
-  setCurrValue: (currValue: number) => void,
+  icon: JSX.Element
+  isPlaying? : boolean
+  currValue: number
+  setCurrValue: (currValue: number) => void
   min?: number
   max: number
+}
+
+type RangeSliderProps = {
+  setCurrminValue: (currminValue: number) => void
+  setCurrmaxValue: (currmaxValue: number) => void
+  min?: number
+  max: number
+  start: number
+  end: number
 }
 
 export default function CustomSlider (props: SliderProps) {
@@ -49,6 +60,26 @@ export default function CustomSlider (props: SliderProps) {
             <Box as={SliderThumbSVG} boxShadow="none" />
           </SliderThumb>
         </Slider>
+      </div>
+    </>)
+}
+
+export function RangeSlider (props: RangeSliderProps) {
+  const onChange = (value: number[]) => {
+    props.setCurrminValue(Math.round(value[0]))
+    props.setCurrmaxValue(Math.round(value[1]))
+  }
+
+  return (
+    <>
+      <div className={styles['noUi-slider']}>
+      <Nouislider
+        range={{ min: (props.min) ? props.min : 1, max: props.max }}
+        start={[props.start, props.end]}
+        step={1}
+        connect={true}
+        onChange={(val: number[]) => onChange(val)}
+      />
       </div>
     </>)
 }

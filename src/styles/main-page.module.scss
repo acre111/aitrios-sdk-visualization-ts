@@ -15,66 +15,54 @@
  */
 
 .main-page-container {
-  display: grid;
-  grid-template-columns: [col1-start] 57% [col2-start] 43% [col-end];
-  grid-template-rows: [row1-start] 39px [row2-start] 39px [row3-start] 39px [row4-start] 1fr [row-end];
-  height: calc(100vh - 60px);
-  overflow: auto;
+  margin-top: 50px;
 
   .main-page-stage {
-    grid-column-start: col1-start;
-    grid-column-end: col-end;
-    grid-row-start: row1-start;
-    grid-row-end: row-end;
     display: flex;
-    justify-content: center;
-    align-items: center;
   }
 
   .aitask-tabs {
-    width: 50%;
-    height: 100%;
+    width: 1000px;
+    height: 870px;
     border-right-color: #aaa;
     border-right-width: 1px;
+    border-bottom-color: #aaa;
+    border-bottom-width: 1px;
   }
 
   .aitask-tablist {
-    display: grid;
-    grid-template-columns: [col1-start] 30% [col2-start] 30% [col2-start] 30% [col-end];
     border-style: solid;
-    border-bottom-color: #aaa;
-    border-bottom-width: 1px;
-    align-items: center;
     font-size: small;
     list-style: none;
+    border-bottom-color: #aaa;
+    border-bottom-width: 1px;
   }
 
   .display-setting-button {
     display: flex;
     justify-content: flex-end;
+    height: 25px;
   }
 
   .mode-tabs {
-    width: 50%;
-    height: 100%;
+    width: 1000px;
+    height: 870px;
+    border-right-color: #aaa;
+    border-right-width: 1px;
     border-bottom-color: #aaa;
     border-bottom-width: 1px;
   }
 
   .mode-tablist {
-    display: grid;
-    grid-template-columns: [col1-start] 30% [col2-start] 30% [col2-start] 30% [col-end];
     border-style: solid;
     border-bottom-color: #aaa;
     border-bottom-width: 1px;
-    align-items: center;
     font-size: small;
     list-style: none;
   }
 
   .realtime-mode-block {
     padding: 0;
-    border-bottom: 1px solid #e0e0e0;
   }
 
   .history-mode-block {
@@ -91,5 +79,28 @@
   .action-disable:disabled {
     margin: 10px 1em;
     cursor: wait;
+  }
+  .deviceid-area {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .select {
+    border: 0.6px solid #373944;
+    color: #373944;
+    margin-left: 1rem;
+    width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;    
+  }
+  .disabled {
+    border: 0.6px solid #8a8c99;
+    color: #8a8c99;
+    margin-left: 1rem;
+    pointer-events: none;
+    width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

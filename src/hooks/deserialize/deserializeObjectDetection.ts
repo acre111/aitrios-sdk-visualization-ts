@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,62 +14,66 @@
  * limitations under the License.
  */
 
-import { flatbuffers } from 'flatbuffers'
-import { SmartCamera } from './ObjectdetectionGenerated'
+import * as flatbuffers from 'flatbuffers'
+import { ObjectDetectionTop } from './objectdetection/object-detection-top'
+import { BoundingBox } from './objectdetection/bounding-box'
+import { BoundingBox2d } from './objectdetection/bounding-box2d'
 
 export const deserializeObjectDetection = (decodeData: Buffer) => {
-    type Inference = {
-        'C': number,
-        'P': number,
-        'X': number,
-        'Y': number,
-        'x': number,
-        'y': number
-    }
+  type Inference = {
+    'class_id': number,
+    'score': number,
+    'left': number,
+    'top': number,
+    'right': number,
+    'bottom': number
+  }
 
-    const pplOut = SmartCamera.ObjectDetectionTop.getRootAsObjectDetectionTop(new flatbuffers.ByteBuffer(decodeData))
-    const readObjData = pplOut.perception()
-    let resNum
-    if (readObjData !== null) {
-      resNum = readObjData.objectDetectionListLength()
+  const pplOut = ObjectDetectionTop.getRootAsObjectDetectionTop(new flatbuffers.ByteBuffer(decodeData))
+  const readObjData = pplOut.perception()
+  let resNum
+  if (readObjData !== null) {
+    resNum = readObjData.objectDetectionListLength()
+  } else {
+    console.log('readObjData is null')
+    return
+  }
+
+  const deserializedInferenceData: { [prop: string]: any } = [{}]
+  for (let i = 0; i < resNum; i++) {
+    const objList = readObjData.objectDetectionList(i)
+    let unionType
+    if (objList !== null) {
+      unionType = objList.boundingBoxType()
     } else {
-      console.log('readObjData is null')
+      console.log('objList is null')
       return
     }
 
-    const deserializedInferenceData:{[prop: string]: any} = [{}]
-    for (let i = 0; i < resNum; i++) {
-      const objList = readObjData.objectDetectionList(i)
-      let unionType
-      if (objList !== null) {
-        unionType = objList.boundingBoxType()
+    if (unionType === BoundingBox.BoundingBox2d) {
+      const bbox2d = objList.boundingBox(new BoundingBox2d())
+      let res: Inference
+      if (bbox2d !== null) {
+        const objListScore = objList.score()
+        const score = Math.round(objListScore * 1000000) / 1000000
+        res = {
+          class_id: Number(objList.classId()),
+          score,
+          left: Number(bbox2d.left()),
+          top: Number(bbox2d.top()),
+          right: Number(bbox2d.right()),
+          bottom: Number(bbox2d.bottom())
+        }
       } else {
-        console.log('objList is null')
+        console.log('bbox2d is null')
         return
       }
-
-      if (unionType === SmartCamera.BoundingBox.BoundingBox2d) {
-        const bbox2d = objList.boundingBox(new SmartCamera.BoundingBox2d())
-        let res: Inference
-        if (bbox2d !== null) {
-          res = {
-            C: Number(objList.classId()),
-            P: Number(objList.score()),
-            X: Number(bbox2d.left()),
-            Y: Number(bbox2d.top()),
-            x: Number(bbox2d.right()),
-            y: Number(bbox2d.bottom())
-          }
-        } else {
-          console.log('bbox2d is null')
-          return
-        }
-        const inferenceKey = String(i + 1)
-        deserializedInferenceData[0][inferenceKey] = res
-      } else {
-        throw new Error()
-      }
+      const inferenceKey = String(i + 1)
+      deserializedInferenceData[0][inferenceKey] = res
+    } else {
+      throw new Error(JSON.stringify({ message: 'An error occurred in deserialize.' }))
     }
+  }
 
-    return deserializedInferenceData
+  return deserializedInferenceData
 }

@@ -20,10 +20,10 @@ import styles from '../../../../styles/main-page.module.scss'
 import buttonStyles from './defaultbutton.module.scss'
 
 type Props = {
-  isLoading: boolean,
-  icon: JSX.Element,
-  text: string,
-  disabled: boolean,
+  isLoading: boolean
+  icon: JSX.Element
+  text: string
+  disabled: boolean
   action: React.MouseEventHandler<HTMLButtonElement>
 }
 
@@ -32,10 +32,10 @@ export default function DefaultButton (props: Props) {
     <Button
       className={props.isLoading ? `${styles['action-disable']}` : `${buttonStyles['default-button']}`}
       leftIcon={props.icon}
-      colorScheme='blue'
+      style={{ color: '#ffffff', backgroundColor: '#2d78be' }}
       variant='solid'
       size='md'
-      disabled={props.disabled}
+      isDisabled={props.disabled}
       onClick={props.action}>
       {props.text}</Button>
   )
