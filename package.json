@@ -20,7 +20,7 @@
     "@types/wicg-file-system-access": "^2020.9.5",
     "@types/sharp": "^0.31.1",
     "@typescript-eslint/parser": "^5.41.0",
-    "consoleaccesslibrary": "file:src/aitrios-sdk-typescript-dev/src/consoleaccesslibrary-1.0.0.tgz",
+    "consoleaccesslibrary": "file:src/aitrios-sdk-console-access-lib-ts/src/consoleaccesslibrary-1.0.0.tgz",
     "fflate": "^0.7.4",
     "flatbuffers": "23.1.21",
     "framer-motion": "^10.11.5",
