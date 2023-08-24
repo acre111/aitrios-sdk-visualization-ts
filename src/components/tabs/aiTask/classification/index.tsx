@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,61 +14,32 @@
  * limitations under the License.
  */
 
-import { List, ListItem, Progress, Textarea } from '@chakra-ui/react'
+import { List, ListItem, Progress, Textarea, Button } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
-import { ClsInferenceProps } from '../../../../hooks/util'
+import { ClsInferenceProps, ClassficationProps, lavelTextCls, settedLabelText, handleFileInputChangeODorCLS, exportLabelDataODorCLS } from '../../../../hooks/util'
 import styles from './classfication.module.scss'
 import { Stage, Layer, Image, Text } from 'react-konva'
-
-type ClassficationProps = {
-  timestamp: string,
-  image: string,
-  inferences: ClsInferenceProps[] | undefined,
-  inferenceRawData: string | undefined,
-  labelData: string[],
-  setLabelData: React.Dispatch<React.SetStateAction<string[]>>,
-  probability: number,
-  isDisplayTs: boolean,
-  displayScore: number,
-  isOverlayIR: boolean,
-  overlayIRC: string,
-  imageCount: number,
-  setDisplayCount: (displayCount: number) => void,
-  setLoadingDialogFlg: (loadingDialogFlg: boolean) => void,
-  isFirst: boolean,
-  setIsFirst: (isFirst: boolean) => void
-}
+import { CLASSIFICATION } from '../../../../pages'
 
 export const ROWDATA_EXPLANATION = 'Inference Result'
 export const LABEL_EXPLANATION = 'Label Setting'
 
 export default function Classification (props: ClassficationProps) {
-  const [labelText, setLabelText] = useState<string>(JSON.stringify(props.labelData).replace(/"|\[|\]/g, '').replace(/,/g, '\n'))
+  const [labelTextCLS, setLabelTextCLS] = useState<string>(JSON.stringify(props.labelData).replace(/"|\[|\]/g, '').replace(/,/g, '\n'))
   const [inferences, setInferences] = useState<ClsInferenceProps[] | undefined>()
   const [rawData, setRawData] = useState<string>()
   const [timeStamp, setTimeStamp] = useState<string>('')
-  const [canvasWidth, setCanvasWidth] = useState<number>(360)
-  const [canvasHeight, setCanvasHeight] = useState<number>(360)
+  const [canvasWidth, setCanvasWidth] = useState<number>(264)
+  const [canvasHeight, setCanvasHeight] = useState<number>(264)
   const [state, setState] = useState<HTMLImageElement>()
-  const settedLabelText = (label: string[], idx: number) => `${label[idx]}`
-
-  const sortDesc = (inferences: ClsInferenceProps[]) => {
-    const highScore = inferences
-      .filter((cls: ClsInferenceProps) => cls.confidence * 100 > props.probability)
-      .sort((a, b) => b.confidence - a.confidence)[0]
-    if (highScore !== undefined) {
-      return Number(highScore.label)
-    } else {
-      return 0
-    }
-  }
+  const SCALE = 1
 
   useEffect(() => {
-    props.setLabelData(labelText.split(/\n/))
-  }, [labelText])
+    props.setLabelData(labelTextCLS.split(/\n/))
+  }, [labelTextCLS])
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && props.aiTask === CLASSIFICATION) {
       const image = new window.Image()
 
       if (typeof props.image === 'string') {
@@ -100,7 +71,7 @@ export default function Classification (props: ClassficationProps) {
       <div className={styles['middle-items']}>
         <div style={{ border: '1px solid black', width: canvasWidth, height: canvasHeight }}>
           {props.image.length !== 0
-            ? <Stage width={canvasWidth} height={canvasHeight}>
+            ? <Stage width={canvasWidth} height={canvasHeight} scaleX={SCALE} scaleY={SCALE}>
               <Layer>
                 <Image
                   image={state}
@@ -115,7 +86,7 @@ export default function Classification (props: ClassficationProps) {
                     width={canvasWidth}
                     wrap={'none'}
                     ellipsis={true}
-                    text={` ${settedLabelText(props.labelData, sortDesc(inferences))} `}
+                    text={lavelTextCls(props.labelData, inferences, props.probability)}
                   />
                   : null
                 }
@@ -128,7 +99,7 @@ export default function Classification (props: ClassficationProps) {
         <div className={styles['inference-data-list']}>
           {inferences !== undefined
             ? inferences
-              .filter((cls: ClsInferenceProps) => cls.confidence * 100 > props.probability)
+              .filter((cls: ClsInferenceProps) => Math.round(cls.confidence * 1000000) / 10000 >= props.probability)
               .sort(function (a, b) { return b.confidence - a.confidence })
               .slice(0, props.displayScore)
               .map((jsonItem, index) => {
@@ -136,7 +107,7 @@ export default function Classification (props: ClassficationProps) {
                   <ListItem>
                     <div className={styles['inference-parameter']}>
                       <div className={styles['inference-parameter-name']}>{` ${settedLabelText(props.labelData, Number(jsonItem.label))} `}</div>
-                      <div className={styles['inference-parameter-percentage']}>{jsonItem.confidence * 100}%</div>
+                      <div className={styles['inference-parameter-percentage']}>{Math.round(jsonItem.confidence * 1000000) / 10000}%</div>
                     </div>
                     {<Progress colorScheme='green' value={jsonItem.confidence * 100} />}
                   </ListItem>
@@ -153,7 +124,34 @@ export default function Classification (props: ClassficationProps) {
         </div>
         <div className={styles['right-item']}>
           <div>{LABEL_EXPLANATION}</div>
-          <Textarea className={styles['label-area']} defaultValue={labelText} onChange={((event) => setLabelText(event.target.value))} resize="none" />
+          <Textarea className={styles['label-area']} value={labelTextCLS} onChange={((event) => setLabelTextCLS(event.target.value))} resize="none" />
+          <div className={styles['button-area']}>
+            <Button
+              onClick={() => document.getElementById('fileInputCLS')?.click()}
+              style={{ color: '#ffffff', backgroundColor: '#2d78be' }}
+              variant='solid'
+              size='md'
+              m={'2'}
+            >
+              Import Labels
+              <input
+                id='fileInputCLS'
+                type='file'
+                accept='.json'
+                style={{ display: 'none' }}
+                onChange={(event) => handleFileInputChangeODorCLS(event, setLabelTextCLS)}
+              />
+            </Button>
+            <Button
+              onClick={() => exportLabelDataODorCLS(props)}
+              style={{ color: '#ffffff', backgroundColor: '#2d78be' }}
+              variant='solid'
+              size='md'
+              m={'2'}
+            >
+              Export Labels
+            </Button>
+          </div>
         </div>
       </div>
     </div>

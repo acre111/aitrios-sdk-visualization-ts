@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { CLASSIFICATION, OBJECT_DETECTION } from '../../pages'
+import { CLASSIFICATION, OBJECT_DETECTION, SEGMENTATION } from '../../pages'
 import { deserializeClassification } from './deserializeClassification'
 import { deserializeObjectDetection } from './deserializeObjectDetection'
+import { deserializeSemanticSegmentation } from './deserializeSegmentation'
 
 /**
  * Deserialize inference data by AI model.
@@ -34,9 +35,11 @@ export const deserialize = async (inferenceData: string, aiTask: string) => {
       deserializeResult = deserializeObjectDetection(decoded)
     } else if (aiTask === CLASSIFICATION) {
       deserializeResult = deserializeClassification(decoded)
+    } else if (aiTask === SEGMENTATION) {
+      deserializeResult = deserializeSemanticSegmentation(decoded)
     }
     return deserializeResult
   } catch (e) {
-    throw new Error()
+    throw new Error(JSON.stringify({ message: 'An error occurred in deserialize.' }))
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 
 import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure } from '@chakra-ui/react'
-import React, { useEffect, useState } from 'react'
-import { CLASSIFICATION } from '../../../../pages'
+import React from 'react'
+import { CLASSIFICATION, SEGMENTATION } from '../../../../pages'
 import DefaultButton from '../../button/defaultbutton'
 import SettingSVG from '../../button/defaultbutton/setting-svg'
 import RadioButton from '../../button/radiobutton'
@@ -27,43 +27,35 @@ import styles from './settingmenu.module.scss'
 
 type SettingMenuProps = {
   aiTask: string
-  mode: string,
-  probability: number,
-  setProbability: (probability: number) => void,
-  isDisplayTs: boolean,
-  setIsDisplayTs: (isDisplayTs: boolean) => void,
-  displayScore?: number,
-  setDisplayScore?: (displayScore: number) => void,
-  isOverlayIR?: boolean,
-  setIsOverlayIR?: (isOverlayIR: boolean) => void,
-  overlayIRC?: string,
+  mode: string
+  probability: number
+  setProbability: (probability: number) => void
+  isDisplayTs: boolean
+  setIsDisplayTs: (isDisplayTs: boolean) => void
+  displayScore?: number
+  setDisplayScore?: (displayScore: number) => void
+  isOverlayIR?: boolean
+  setIsOverlayIR?: (isOverlayIR: boolean) => void
+  overlayIRC?: string
   setOverlayIRC?: (isOverlayIRC: string) => void
+  transparency?: number
+  setTransparency?: (transparency: number) => void
 }
 
 export default function SettingMenu (props: SettingMenuProps) {
   const RADIO_TEXT: string[] = ['ON', 'OFF']
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [tsRadioValue, setTsRadioValue] = useState<string>(RADIO_TEXT[0])
   const scoreList = [...Array(21)].map((_, num) => num)
-  const [overlayIrValue, setOverlayIrValue] = useState<string>(RADIO_TEXT[0])
 
-  useEffect(() => {
-    if (tsRadioValue === RADIO_TEXT[0]) {
-      props.setIsDisplayTs(true)
-    } else {
-      props.setIsDisplayTs(false)
-    }
-  }, [tsRadioValue])
+  const changeDisplayTs = () => {
+    props.setIsDisplayTs(!props.isDisplayTs)
+  }
 
-  useEffect(() => {
-    if (props.isOverlayIR !== undefined && props.setIsOverlayIR !== undefined) {
-      if (overlayIrValue === RADIO_TEXT[0]) {
-        props.setIsOverlayIR(true)
-      } else {
-        props.setIsOverlayIR(false)
-      }
+  const changeOverlay = () => {
+    if (props.setIsOverlayIR !== undefined) {
+      props.setIsOverlayIR(!props.isOverlayIR)
     }
-  }, [overlayIrValue])
+  }
 
   return (
     <>
@@ -74,18 +66,34 @@ export default function SettingMenu (props: SettingMenuProps) {
           <ModalHeader />
           <ModalCloseButton />
           <ModalBody>
-            <div className={styles['probability-area']}>
-              <div>Probability</div>
+            {props.aiTask !== SEGMENTATION
+              ? <div className={styles['probability-area']}>
+                <div>Probability</div>
+                <div className={styles['slider-area']}>
+                  <CustomSlider icon={<ProbabilitySVG />} currValue={props.probability} setCurrValue={props.setProbability} max={100} />
+                  <div className={styles['unit-area']}>
+                    {` >= ${props.probability}  %`}
+                  </div>
+                </div>
+              </div>
+              : null
+            }
+
+            {props.aiTask === SEGMENTATION && props.transparency !== undefined && props.setTransparency !== undefined
+              ? <div className={styles['probability-area']}>
+              <div>transparency</div>
               <div className={styles['slider-area']}>
-                <CustomSlider icon={<ProbabilitySVG />} currValue={props.probability} setCurrValue={props.setProbability} max={100} />
+                <CustomSlider icon={<ProbabilitySVG />} currValue={props.transparency} setCurrValue={props.setTransparency} max={100} />
                 <div className={styles['unit-area']}>
-                  {` > ${props.probability}  %`}
+                  {`${props.transparency}  %`}
                 </div>
               </div>
             </div>
+              : null
+            }
             <div className={styles['radio-button']}>
               Display Timestamp
-              <RadioButton name={'tsRadio'} radioValue={tsRadioValue} setRadioValue={setTsRadioValue} text={RADIO_TEXT} />
+              <RadioButton name={'tsRadio'} radioValue={props.isDisplayTs ? RADIO_TEXT[0] : RADIO_TEXT[1]} setRadioValue={changeDisplayTs} text={RADIO_TEXT} />
             </div>
             {props.aiTask === CLASSIFICATION
               ? <div className={styles['display-top-score']}>Display Top
@@ -101,7 +109,8 @@ export default function SettingMenu (props: SettingMenuProps) {
                       }
                     }
                     }
-                    defaultValue={props.displayScore}
+                    value={props.displayScore}
+                    defaultSpace= {true}
                     disabled={false}
                   />
                 </div>
@@ -110,7 +119,7 @@ export default function SettingMenu (props: SettingMenuProps) {
             }
             {props.aiTask === CLASSIFICATION
               ? <div className={styles['radio-button']}>Overlay Inference Result
-                <RadioButton name={'overlayRadio'} radioValue={overlayIrValue} setRadioValue={setOverlayIrValue} text={RADIO_TEXT} />
+                <RadioButton name={'overlayRadio'} radioValue={props.isOverlayIR ? RADIO_TEXT[0] : RADIO_TEXT[1]} setRadioValue={changeOverlay} text={RADIO_TEXT} />
               </div>
               : null
             }
@@ -130,6 +139,7 @@ export default function SettingMenu (props: SettingMenuProps) {
               </div>
               : null
             }
+
           </ModalBody>
           <ModalFooter>
           </ModalFooter>

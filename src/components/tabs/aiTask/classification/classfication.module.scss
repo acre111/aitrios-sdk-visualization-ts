@@ -15,7 +15,7 @@
     justify-content: space-between;
 
     .inference-data-list {
-      width: 45%;
+      width: 430px;
       height: 360px;
       padding: 10px;
       overflow-y: auto;
@@ -43,7 +43,8 @@
     margin-top: 15px;
 
     .left-item {
-      width: 50%;
+      width: 450px;
+      padding-right: 10px;
 
       .raw-data {
         height: 300px;
@@ -52,12 +53,13 @@
         border-width: thin;
         border-color: #373944;
         overflow-y: scroll;
-        overflow-x: hidden;
+        overflow-x: scroll;
       }
     }
 
     .right-item {
-      width: 45%;
+      width: 450px;
+      padding-left: 10px;
 
       .label-area {
         height: 300px;
@@ -68,6 +70,11 @@
         padding-left: 10px;
         overflow-y: scroll;
         overflow-x: hidden;
+      }
+      
+      .button-area {
+        display: flex;
+        justify-content: flex-end;
       }
     }
   }

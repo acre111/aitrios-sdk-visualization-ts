@@ -17,26 +17,28 @@
 import React from 'react'
 
 type DropDownListProps = {
-  id: string,
-  name: string,
-  className: string,
-  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void,
-  disabled: boolean,
+  id: string
+  name: string
+  className: string
+  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
+  disabled: boolean
   list: string[] | number[]
-  defaultValue?: string | number
+  value?: string | number
+  defaultSpace?: boolean
 }
 
 export default function DropDownList (props: DropDownListProps) {
   return (
     <select
-      defaultValue={props.defaultValue}
       id={props.id}
       name={props.name}
+      value={props.value}
       className={props.className}
       onChange={(e) => props.onChange(e)}
       tabIndex={props.disabled ? -1 : 0}
-      style={{ outline: 'none', paddingLeft: '2px', paddingRight: '5px' }} >
-      <option value="" />
+      style={{ outline: 'none', paddingLeft: '2px', paddingRight: '5px' }}
+    >
+      {props.defaultSpace ? <option value="" /> : null }
       {props.list.map((data, index) => {
         return (
           <option key={index} value={data}>{data}</option>

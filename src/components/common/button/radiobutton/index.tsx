@@ -18,9 +18,9 @@ import React from 'react'
 import styles from './radiobutton.module.scss'
 
 type RadioButtonProps = {
-  name: string,
-  radioValue: string,
-  setRadioValue: (radioValue: string) => void,
+  name: string
+  radioValue: string
+  setRadioValue: (radioValue: string) => void
   text: string[]
 }
 

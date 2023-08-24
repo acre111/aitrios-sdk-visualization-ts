@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Sony Semiconductor Solutions Corp. All rights reserved.
+ * Copyright 2022, 2023 Sony Semiconductor Solutions Corp. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,44 @@
  * limitations under the License.
  */
 
-import { flatbuffers } from 'flatbuffers'
-import { SmartCamera } from './ClassificationGenerated'
+import * as flatbuffers from 'flatbuffers'
+import { ClassificationTop } from './classification/classification-top'
 
 export const deserializeClassification = (decodeData: Buffer) => {
-    type Inference = {
-        'C': number,
-        'P': number
-    }
+  type Inference = {
+    'class_id': number
+    'score': number
+  }
 
-    const pplOut = SmartCamera.ClassificationTop.getRootAsClassificationTop(new flatbuffers.ByteBuffer(decodeData))
-    const readclassData = pplOut.perception()
-    let resNum
-    if (readclassData !== null) {
-      resNum = readclassData.classificationListLength()
+  const pplOut = ClassificationTop.getRootAsClassificationTop(new flatbuffers.ByteBuffer(decodeData))
+  const readclassData = pplOut.perception()
+  let resNum
+  if (readclassData !== null) {
+    resNum = readclassData.classificationListLength()
+  } else {
+    console.log('readclassData is null')
+    return
+  }
+
+  const deserializedInferenceData: { [prop: string]: any } = [{}]
+  for (let i = 0; i < resNum; i++) {
+    const clsList = readclassData.classificationList(i)
+    let res: Inference
+    if (clsList != null) {
+      const clsListScore = clsList.score()
+      const score = Math.round(clsListScore * 1000000) / 1000000
+      res = {
+        class_id: Number(clsList.classId()),
+        score
+      }
     } else {
-      console.log('readclassData is null')
+      console.log('clsList is null')
       return
     }
 
-    const deserializedInferenceData: { [prop: string]: any } = [{}]
-    for (let i = 0; i < resNum; i++) {
-      const clsList = readclassData.classificationList(i)
-      let res: Inference
-      if (clsList != null) {
-        res = {
-          C: Number(clsList.classId()),
-          P: Number(clsList.score())
-        }
-      } else {
-        console.log('clsList is null')
-        return
-      }
+    const inferenceKey = String(i + 1)
+    deserializedInferenceData[0][inferenceKey] = res
+  }
 
-      const inferenceKey = String(i + 1)
-      deserializedInferenceData[0][inferenceKey] = res
-    }
-
-    return deserializedInferenceData
+  return deserializedInferenceData
 }

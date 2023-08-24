@@ -17,6 +17,7 @@
 import { Client, Config } from 'consoleaccesslibrary'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getConsoleSettings } from '../../../common/config'
+import { DeviceListData } from '../../../hooks/util'
 
 /**
  * Uses Console to retrieve information about a devices.
@@ -54,12 +55,20 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 
   await getDeviceInfo()
     .then(result => {
-      const deviceList: string[] = []
+      const deviceData: DeviceListData = {}
       result.devices.forEach((elm: any) => {
-        deviceList.push(elm.device_id)
+        deviceData[elm.property.device_name] = elm.device_id
       })
-      const deviceData = { deviceList }
-      res.status(200).json(deviceData)
+      const sortedKeys = Object.keys(deviceData).sort((a, b) => {
+        a = a.toLowerCase()
+        b = b.toLowerCase()
+        return a < b ? -1 : a > b ? 1 : 0
+      })
+      const sortDeviceData: DeviceListData = {}
+      sortedKeys.forEach((key) => {
+        sortDeviceData[key] = deviceData[key]
+      })
+      res.status(200).json(sortDeviceData)
     }).catch(err => {
       res.status(500).json(err.message)
     })
