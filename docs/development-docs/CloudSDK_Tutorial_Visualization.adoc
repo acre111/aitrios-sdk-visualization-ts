@@ -100,7 +100,7 @@ There are two modes of operation: Realtime Mode, which gets the latest inference
 
 == Set up environment
 
-To set up Codespaces, VS Code, and Docker, see the https://developer.aitrios.sony-semicon.com/en/file/download/sdk-getting-started/["**SDK Getting Started**"]. + 
+To set up Codespaces, VS Code, and Docker, see the https://developer.aitrios.sony-semicon.com/en/downloads#sdk-getting-started["**SDK Getting Started**"]. + 
 To set up and run Node.js on your PC, see the next step.
 
 === Set up Node.js
