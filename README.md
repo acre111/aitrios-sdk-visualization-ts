@@ -26,7 +26,7 @@ This repository provides "**Cloud SDK Visualization**" to check inference result
 
 ## Getting Started
 
-See the ["**SDK Getting Started**"](https://developer.aitrios.sony-semicon.com/en/development-guides/get-started/setup-dev/).
+See the ["**SDK Getting Started**"](https://developer.aitrios.sony-semicon.com/en/downloads#sdk-getting-started).
 
 ## Tutorials
 
