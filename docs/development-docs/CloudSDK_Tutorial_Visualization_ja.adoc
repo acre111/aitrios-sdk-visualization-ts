@@ -89,7 +89,7 @@ DockerBuild対応 +
 
 == 環境セットアップ
 
-Codespaces、VS Codeおよび、Dockerのセットアップについては https://developer.aitrios.sony-semicon.com/development-guides/get-started/[「**SDK スタートガイド**」] を参照してください。 +
+Codespaces、VS Codeおよび、Dockerのセットアップについては https://developer.aitrios.sony-semicon.com/en/downloads#sdk-getting-started[「**SDK スタートガイド**」] を参照してください。 +
 お使いのPC上にNode.js環境をセットアップして実行する場合は、下記の手順を参照してください。
 
 === Node.js環境をセットアップする
