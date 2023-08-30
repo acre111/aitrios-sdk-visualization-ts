@@ -133,7 +133,7 @@ function Home () {
   return (
     <>
       <LoadingDialog display={loadingDialogFlg} />
-      <Layout title="edge AI device Visualization">
+      <Layout title="edge AI Signage Optimizer">
         <div className={styles['main-page-container']}>
           <div className={styles['main-page-stage']}>
             <Tabs isFitted className={styles['aitask-tabs']} onChange={(taskNum: number) => {
@@ -145,60 +145,6 @@ function Home () {
                 setAiTask(SEGMENTATION)
               }
             }}>
-              <TabList className={styles['aitask-tablist']}>
-                <Tab isDisabled={isPlaying || isUploading}>Object Detection</Tab>
-                <Tab isDisabled={isPlaying || isUploading}>Classification</Tab>
-                <Tab isDisabled={isPlaying || isUploading}>Segmentation</Tab>
-              </TabList>
-              <div className={styles['display-setting-button']}>
-                {aiTask === OBJECT_DETECTION
-                  ? <SettingMenu
-                    aiTask={aiTask}
-                    mode={mode}
-                    probability={probability}
-                    setProbability={setProbability}
-                    isDisplayTs={isDisplayTs}
-                    setIsDisplayTs={setIsDisplayTs}
-                  />
-                  : null
-                }
-                {aiTask === CLASSIFICATION
-                  ? <SettingMenu
-                    aiTask={aiTask}
-                    mode={mode}
-                    probability={probability}
-                    setProbability={setProbability}
-                    isDisplayTs={isDisplayTs}
-                    setIsDisplayTs={setIsDisplayTs}
-                    displayScore={displayScore}
-                    setDisplayScore={setDisplayScore}
-                    isOverlayIR={isOverlayIR}
-                    setIsOverlayIR={setIsOverlayIR}
-                    overlayIRC={overlayIRC}
-                    setOverlayIRC={setOverlayIRC}
-                  />
-                  : null
-                }
-                {aiTask === SEGMENTATION
-                  ? <SettingMenu
-                    aiTask={aiTask}
-                    mode={mode}
-                    probability={probability}
-                    setProbability={setProbability}
-                    isDisplayTs={isDisplayTs}
-                    setIsDisplayTs={setIsDisplayTs}
-                    displayScore={displayScore}
-                    setDisplayScore={setDisplayScore}
-                    isOverlayIR={isOverlayIR}
-                    setIsOverlayIR={setIsOverlayIR}
-                    overlayIRC={overlayIRC}
-                    setOverlayIRC={setOverlayIRC}
-                    transparency={transparency}
-                    setTransparency={setTransparency}
-                  />
-                  : null
-                }
-              </div>
               <TabPanels>
                 <TabPanel className={styles['aitask-tab-panel']}>
                   <ObjectiveDetection
@@ -214,42 +160,6 @@ function Home () {
                     imageCount={imageCount}
                     setDisplayCount={setDisplayCount}
                     setLoadingDialogFlg={setLoadingDialogFlg}
-                  />
-                </TabPanel>
-                <TabPanel className={styles['aitask-tab-panel']}>
-                  <Classification
-                    aiTask={aiTask}
-                    timestamp={timestamp}
-                    image={imageCls}
-                    inferences={inferencesCls}
-                    inferenceRawData={inferenceRawData}
-                    labelData={labelDataCLS}
-                    setLabelData={setLabelDataCLS}
-                    probability={probability}
-                    isDisplayTs={isDisplayTs}
-                    displayScore={displayScore}
-                    isOverlayIR={isOverlayIR}
-                    overlayIRC={overlayIRC}
-                    imageCount={imageCount}
-                    setDisplayCount={setDisplayCount}
-                    setLoadingDialogFlg={setLoadingDialogFlg}
-                    isFirst={isFirst}
-                    setIsFirst={setIsFirst}
-                  />
-                </TabPanel>
-                <TabPanel className={styles['aitask-tab-panel']}>
-                  <Segmentation
-                    aiTask={aiTask}
-                    timestamp={timestamp}
-                    inferenceRawData={inferenceRawData}
-                    image={imageSEG}
-                    inferences={inferencesSEG}
-                    transparency={transparency}
-                    isDisplayTs={isDisplayTs}
-                    labelDataSEG={labelDataSEG}
-                    setLabelDataSEG={setLabelDataSEG}
-                    imageCount={imageCount}
-                    setDisplayCount={setDisplayCount}
                   />
                 </TabPanel>
               </TabPanels>
