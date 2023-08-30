@@ -26,10 +26,28 @@ export const LABEL_EXPLANATION = 'Label Setting'
 
 const BoundingBoxes = dynamic(() => import('../../../common/boundingboxes'), { ssr: false })
 
+enum Advertisements {
+  kid = "/workspace/src/public/kid.jpg",
+  woman = "/workspace/src/public/woman.jpg",
+  man = "/workspace/src/public/man.jpg",
+};
+
 export default function ObjectiveDetection (props: ObjectDetectionProps) {
   const [labelTextOD, setLabelTextOD] = useState<string>(JSON.stringify(props.labelData).replace(/"|\[|\]/g, '').replace(/,/g, '\n'))
   const [timeStamp, setTimeStamp] = useState<string>('')
   const [rawData, setRawData] = useState<string | undefined>(undefined)
+  const [advertisement, setAdvertisement] = useState<Advertisements>(Advertisements.woman)
+
+  useEffect(() => {
+    if (props.labelData[0] === "woman") {
+      setAdvertisement(Advertisements.woman)
+    } if (props.labelData[0] === "man") {
+      setAdvertisement(Advertisements.man)
+    } else {
+      setAdvertisement(Advertisements.kid)
+    }
+    console.log(advertisement)
+  }, [props.image])
 
   useEffect(() => {
     props.setLabelData(labelTextOD.split(/\n/))
@@ -61,6 +79,10 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
             setDisplayCount={props.setDisplayCount}
             setLoadingDialogFlg={props.setLoadingDialogFlg}
           />
+          <p>
+            Ad: {advertisement}
+            <img src={advertisement} width="100" />
+          </p>
         </div>
       </div>
       <div className={styles['lower-items']}>
