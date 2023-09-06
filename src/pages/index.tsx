@@ -70,7 +70,7 @@ function Home () {
   const [displayCount, setDisplayCount] = useState<number>(-1)
   const [pollingData, setPollingData] = useState<PollingData | undefined>(undefined)
 
-  const [sinageMode, setSinageMode] = useState<boolean>(false)
+  const [signageMode, setSignageMode] = useState<boolean>(false)
 
   const pollingHandlerProps: PollingHandlerProps = {
     deviceId,
@@ -128,11 +128,11 @@ function Home () {
       <LoadingDialog display={loadingDialogFlg} />
       <Layout title="edge AI Digital Signage">
         <div className={styles['main-page-container']}>
-          <div className={styles['sinage-mode-area']}>
-            Sinage mode: <Switch onChange={(event) => { setSinageMode((prev) => !prev) }} />
+          <div className={styles['signage-mode-area']}>
+            Signage mode: <Switch onChange={(event) => { setSignageMode((prev) => !prev) }} />
           </div>
           {
-            sinageMode === false
+            signageMode === false
               ? <div className={styles['main-page-stage']}>
                   <ObjectiveDetection
                     aiTask={aiTask}
@@ -147,7 +147,7 @@ function Home () {
                     imageCount={imageCount}
                     setDisplayCount={setDisplayCount}
                     setLoadingDialogFlg={setLoadingDialogFlg}
-                    sinageMode={sinageMode}
+                    signageMode={signageMode}
                   />
                   <div className={styles['deviceid-area']}>
                     Device Name
@@ -221,7 +221,7 @@ function Home () {
                   imageCount={imageCount}
                   setDisplayCount={setDisplayCount}
                   setLoadingDialogFlg={setLoadingDialogFlg}
-                  sinageMode={sinageMode}
+                  signageMode={signageMode}
                 />
           }
         </div>

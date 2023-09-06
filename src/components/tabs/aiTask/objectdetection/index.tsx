@@ -28,10 +28,10 @@ export const LABEL_EXPLANATION = 'Label Setting'
 
 export type AdvertisementProps = {
   labels: string[] | undefined
-  sinageMode: boolean
+  signageMode: boolean
 }
 
-const Advertisement = ({ labels, sinageMode }: AdvertisementProps) => {
+const Advertisement = ({ labels, signageMode: signageMode }: AdvertisementProps) => {
   const advertisements: { [name: string]: string } = {
     toy: 'toy.png',
     makeup: 'makeup.png',
@@ -66,7 +66,7 @@ const Advertisement = ({ labels, sinageMode }: AdvertisementProps) => {
       <img
         src={advertisement}
         width={650}
-        className={sinageMode === false ? styles['advertisement-area'] : styles['advertisement-area-sinage-mode']}
+        className={signageMode === false ? styles['advertisement-area'] : styles['advertisement-area-singage-mode']}
       />
     </>
   )
@@ -111,7 +111,7 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
   return (
     <>
     {
-      props.sinageMode === false
+      props.signageMode === false
         ? <div className={styles['object-detection-container']}>
             {props.isDisplayTs === true
               ? <div className={styles['timestamp-area']}>Timestamp:{timeStamp}</div>
@@ -119,7 +119,7 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
             }
             <div className={styles['upper-items']}>
               <div className={styles['right-item']}>
-                <Advertisement labels={labelList} sinageMode={props.sinageMode}/>
+                <Advertisement labels={labelList} signageMode={props.signageMode}/>
               </div>
             </div>
             <div className={styles['lower-items']}>
@@ -140,7 +140,7 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
             }
             <div className={styles['upper-items']}>
               <div className={styles['right-item']}>
-                <Advertisement labels={labelList} sinageMode={props.sinageMode}/>
+                <Advertisement labels={labelList} signageMode={props.signageMode}/>
               </div>
             </div>
           </div>
