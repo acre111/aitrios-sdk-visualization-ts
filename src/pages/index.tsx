@@ -71,7 +71,7 @@ function Home () {
   const [displayCount, setDisplayCount] = useState<number>(-1)
   const [pollingData, setPollingData] = useState<PollingData | undefined>(undefined)
 
-  const [sinageMode, setSinageMode] = useState<'Management' | 'Sinage'>('Management')
+  const [signageMode, setSignageMode] = useState<'Management' | 'Signage'>('Management')
 
   const pollingHandlerProps: PollingHandlerProps = {
     deviceId,
@@ -130,15 +130,15 @@ function Home () {
       <Layout title="edge AI Digital Signage">
         <div className={styles['main-page-container']}>
           <div className={styles['mode-input-area']}>
-            Management/Sinage mode:
+            Management/Signage mode:
             <Input
               width="300px"
-              onChange={(event) => { setSinageMode(event.target.value) }}
+              onChange={(event) => { setSignageMode(event.target.value) }}
             />
-            <a href={sinageMode}>Jump!</a>
+            <a href={signageMode}>Jump!</a>
           </div>
           {
-            sinageMode === 'Management'
+            signageMode === 'Management'
               ? <div className={styles['main-page-stage']}>
                   <ObjectiveDetection
                     aiTask={aiTask}
@@ -153,7 +153,7 @@ function Home () {
                     imageCount={imageCount}
                     setDisplayCount={setDisplayCount}
                     setLoadingDialogFlg={setLoadingDialogFlg}
-                    sinageMode={sinageMode}
+                    signageMode={signageMode}
                   />
                   <div className={styles['deviceid-area']}>
                     Device Name
@@ -227,7 +227,7 @@ function Home () {
                   imageCount={imageCount}
                   setDisplayCount={setDisplayCount}
                   setLoadingDialogFlg={setLoadingDialogFlg}
-                  sinageMode={sinageMode}
+                  signageMode={signageMode}
                 />
           }
         </div>

@@ -142,7 +142,7 @@ export type ObjectDetectionProps = {
   imageCount: number
   setDisplayCount: (displayCount: number) => void
   setLoadingDialogFlg: (loadingDialogFlg: boolean) => void
-  sinageMode: string
+  signageMode: string
 }
 
 export type SegmentationProps = {
