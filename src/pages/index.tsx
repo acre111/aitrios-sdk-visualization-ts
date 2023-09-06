@@ -16,7 +16,7 @@
 
 import React, { useEffect, useState } from 'react'
 import LoadingDialog from '../components/common/dialog/loading'
-import { Input, Switch } from '@chakra-ui/react'
+import { Input } from '@chakra-ui/react'
 import Layout from '../components/common/layout'
 import DropDownList from '../components/common/dropdownlist'
 import DefaultButton from '../components/common/button/defaultbutton'
@@ -26,7 +26,6 @@ import Realtime from '../components/tabs/mode/realtime'
 import useInterval from '../hooks/useInterval'
 import { BoundingBoxProps, ClsInferenceProps, SegInferenceProps, PollingData, PollingHandlerProps, setDataProps, pollingHandler, setData, ErrorData, handleResponseErr, SegmentationLabelType, DeviceListData } from '../hooks/util'
 import styles from '../styles/main-page.module.scss'
-import { setPointerCapture } from 'konva/lib/PointerEvents'
 
 export const REALTIME_MODE = 'realtimeMode'
 export const HISTORY_MODE = 'historyMode'
@@ -47,17 +46,9 @@ function Home () {
 
   const [inferenceRawData, setInferencesRawData] = useState<string | undefined>(undefined)
   const [labelDataOD, setLabelDataOD] = useState<string[]>(['woman', 'man', 'kid'])
-  const [labelDataCLS, setLabelDataCLS] = useState<string[]>(['woman', 'man', 'kid'])
-  const [labelDataSEG, setLabelDataSEG] = useState<SegmentationLabelType[]>([
-    { isVisible: true, label: 'label1', color: '#000000' },
-    { isVisible: false, label: 'label2', color: '#0000ff' },
-    { isVisible: true, label: 'label3', color: '#ff0000' }
-  ])
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [probability, setProbability] = useState<number>(0)
   const [isDisplayTs, setIsDisplayTs] = useState<boolean>(true)
-  const [isOverlayIR, setIsOverlayIR] = useState<boolean>(true)
-  const [overlayIRC, setOverlayIRC] = useState<string>('#FFFFFF')
   const [intervalTimeValue, setIntervalTimeValue] = useState<number>(10)
   const [deviceId, setDeviceId] = useState<string>('')
   const [isUploading, setIsUploading] = useState<boolean>(false)
@@ -237,5 +228,3 @@ function Home () {
 }
 
 export default Home
-
-
