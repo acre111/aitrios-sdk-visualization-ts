@@ -16,7 +16,7 @@
 
 import React, { useEffect, useState } from 'react'
 import LoadingDialog from '../components/common/dialog/loading'
-import { Switch } from '@chakra-ui/react'
+import { Input, Switch } from '@chakra-ui/react'
 import Layout from '../components/common/layout'
 import DropDownList from '../components/common/dropdownlist'
 import DefaultButton from '../components/common/button/defaultbutton'
@@ -26,6 +26,7 @@ import Realtime from '../components/tabs/mode/realtime'
 import useInterval from '../hooks/useInterval'
 import { BoundingBoxProps, ClsInferenceProps, SegInferenceProps, PollingData, PollingHandlerProps, setDataProps, pollingHandler, setData, ErrorData, handleResponseErr, SegmentationLabelType, DeviceListData } from '../hooks/util'
 import styles from '../styles/main-page.module.scss'
+import { setPointerCapture } from 'konva/lib/PointerEvents'
 
 export const REALTIME_MODE = 'realtimeMode'
 export const HISTORY_MODE = 'historyMode'
@@ -70,7 +71,7 @@ function Home () {
   const [displayCount, setDisplayCount] = useState<number>(-1)
   const [pollingData, setPollingData] = useState<PollingData | undefined>(undefined)
 
-  const [sinageMode, setSinageMode] = useState<boolean>(false)
+  const [sinageMode, setSinageMode] = useState<'Management' | 'Sinage'>('Management')
 
   const pollingHandlerProps: PollingHandlerProps = {
     deviceId,
@@ -128,11 +129,16 @@ function Home () {
       <LoadingDialog display={loadingDialogFlg} />
       <Layout title="edge AI Digital Signage">
         <div className={styles['main-page-container']}>
-          <div className={styles['sinage-mode-area']}>
-            Sinage mode: <Switch onChange={(event) => { setSinageMode((prev) => !prev) }} />
+          <div className={styles['mode-input-area']}>
+            Management/Sinage mode:
+            <Input
+              width="300px"
+              onChange={(event) => { setSinageMode(event.target.value) }}
+            />
+            <a href={sinageMode}>Jump!</a>
           </div>
           {
-            sinageMode === false
+            sinageMode === 'Management'
               ? <div className={styles['main-page-stage']}>
                   <ObjectiveDetection
                     aiTask={aiTask}
@@ -231,3 +237,5 @@ function Home () {
 }
 
 export default Home
+
+

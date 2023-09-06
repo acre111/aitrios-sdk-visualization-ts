@@ -28,7 +28,7 @@ export const LABEL_EXPLANATION = 'Label Setting'
 
 export type AdvertisementProps = {
   labels: string[] | undefined
-  sinageMode: boolean
+  sinageMode: string
 }
 
 const Advertisement = ({ labels, sinageMode }: AdvertisementProps) => {
@@ -66,7 +66,7 @@ const Advertisement = ({ labels, sinageMode }: AdvertisementProps) => {
       <img
         src={advertisement}
         width={650}
-        className={sinageMode === false ? styles['advertisement-area'] : styles['advertisement-area-sinage-mode']}
+        className={sinageMode === 'management' ? styles['advertisement-area'] : styles['advertisement-area-sinage-mode']}
       />
     </>
   )
@@ -111,7 +111,7 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
   return (
     <>
     {
-      props.sinageMode === false
+      props.sinageMode === 'Management'
         ? <div className={styles['object-detection-container']}>
             {props.isDisplayTs === true
               ? <div className={styles['timestamp-area']}>Timestamp:{timeStamp}</div>
