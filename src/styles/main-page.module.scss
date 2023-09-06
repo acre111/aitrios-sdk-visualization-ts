@@ -14,55 +14,22 @@
  * limitations under the License.
  */
 
-.main-page-container {
+ .main-page-container {
   margin-top: 50px;
+
+  .sinage-mode-area {
+    padding-left: 16px;
+    padding-top: 10px;
+  }
 
   .main-page-stage {
     display: flex;
-  }
-
-  .aitask-tabs {
-    width: 1000px;
-    height: 870px;
-    border-right-color: #aaa;
-    border-right-width: 1px;
-    border-bottom-color: #aaa;
-    border-bottom-width: 1px;
-  }
-
-  .aitask-tablist {
-    border-style: solid;
-    font-size: small;
-    list-style: none;
-    border-bottom-color: #aaa;
-    border-bottom-width: 1px;
   }
 
   .display-setting-button {
     display: flex;
     justify-content: flex-end;
     height: 25px;
-  }
-
-  .mode-tabs {
-    width: 1000px;
-    height: 870px;
-    border-right-color: #aaa;
-    border-right-width: 1px;
-    border-bottom-color: #aaa;
-    border-bottom-width: 1px;
-  }
-
-  .mode-tablist {
-    border-style: solid;
-    border-bottom-color: #aaa;
-    border-bottom-width: 1px;
-    font-size: small;
-    list-style: none;
-  }
-
-  .realtime-mode-block {
-    padding: 0;
   }
 
   .history-mode-block {
@@ -82,7 +49,7 @@
   }
   .deviceid-area {
     padding: 16px;
-    border-bottom: 1px solid #e0e0e0;
+    padding-left: 240px;
   }
   .select {
     border: 0.6px solid #373944;

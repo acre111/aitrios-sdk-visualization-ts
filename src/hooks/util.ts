@@ -142,6 +142,7 @@ export type ObjectDetectionProps = {
   imageCount: number
   setDisplayCount: (displayCount: number) => void
   setLoadingDialogFlg: (loadingDialogFlg: boolean) => void
+  sinageMode: boolean
 }
 
 export type SegmentationProps = {
@@ -289,6 +290,7 @@ export const importLabelDataODorCLS = (contents: string, setLabelText: (text: st
       return window.alert('Json file with a different data format was selected.')
     }
     const viewTxt = JSON.stringify(data.label).replace(/"|\[|\]/g, '').replace(/,/g, '\n')
+    console.log(viewTxt)
     setLabelText(viewTxt)
   } catch (error) {
     window.alert('The json format of the label settings file is invalid')
@@ -472,7 +474,7 @@ export const pollingHandler = async (props: PollingHandlerProps): Promise<Pollin
       handleResponseErr(errorMessage)
     }
   } catch (e) {
-    handleResponseErr({ message: 'An error has occurred.' })
+    // handleResponseErr({ message: 'An error has occurred.F' })
     props.setLoadingDialogFlg(false)
   }
   return pollingData

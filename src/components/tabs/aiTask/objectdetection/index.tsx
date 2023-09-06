@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Textarea, Button } from '@chakra-ui/react'
+import { Textarea } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
-import { ObjectDetectionProps, handleFileInputChangeODorCLS, exportLabelDataODorCLS } from '../../../../hooks/util'
+import { ObjectDetectionProps, BoundingBoxProps } from '../../../../hooks/util'
 import { OBJECT_DETECTION } from '../../../../pages'
 import styles from './objectdetection.module.scss'
 import dynamic from 'next/dynamic'
@@ -24,30 +24,79 @@ import dynamic from 'next/dynamic'
 export const ROWDATA_EXPLANATION = 'Inference Result'
 export const LABEL_EXPLANATION = 'Label Setting'
 
-const BoundingBoxes = dynamic(() => import('../../../common/boundingboxes'), { ssr: false })
+// const BoundingBoxes = dynamic(() => import('../../../common/boundingboxes'), { ssr: false })
 
-enum Advertisements {
-  kid = "/workspace/src/public/kid.jpg",
-  woman = "/workspace/src/public/woman.jpg",
-  man = "/workspace/src/public/man.jpg",
-};
+export type AdvertisementProps = {
+  labels: string[] | undefined
+  sinageMode: boolean
+}
+
+const Advertisement = ({ labels, sinageMode }: AdvertisementProps) => {
+  const advertisements: { [name: string]: string } = {
+    toy: 'toy.png',
+    makeup: 'makeup.png',
+    bike: 'bike.png',
+    init: 'init.png'
+  }
+
+  const classes: { [name: string]: string } = {
+    0: 'makeup',
+    1: 'bike',
+    2: 'toy'
+  }
+
+  const advertisementType: string | undefined = labels !== undefined ? labels[0] : undefined
+  const [advertisement, setAdvertisement] = useState<string>(advertisements.init)
+
+  useEffect(() => {
+    if (advertisementType === undefined) {
+      setAdvertisement(advertisements.init)
+    } else if (advertisementType === '0') {
+      setAdvertisement(advertisements.makeup)
+    } else if (advertisementType === '1') {
+      setAdvertisement(advertisements.bike)
+    } else if (advertisementType === '2') {
+      setAdvertisement(advertisements.toy)
+    }
+  }, [labels])
+
+  return (
+    <>
+      <p>Advertisement Type: {advertisementType && classes[advertisementType]}</p>
+      <img
+        src={advertisement}
+        width={650}
+        className={sinageMode === false ? styles['advertisement-area'] : styles['advertisement-area-sinage-mode']}
+      />
+    </>
+  )
+}
 
 export default function ObjectiveDetection (props: ObjectDetectionProps) {
   const [labelTextOD, setLabelTextOD] = useState<string>(JSON.stringify(props.labelData).replace(/"|\[|\]/g, '').replace(/,/g, '\n'))
   const [timeStamp, setTimeStamp] = useState<string>('')
   const [rawData, setRawData] = useState<string | undefined>(undefined)
-  const [advertisement, setAdvertisement] = useState<Advertisements>(Advertisements.woman)
+  const [labelList, setLabelList] = useState<string[] | undefined>(undefined)
+  const [state, setState] = useState<HTMLImageElement>()
+  const [boundingBoxesData, setBoundingBoxesData] = useState<BoundingBoxProps[] | undefined>()
 
   useEffect(() => {
-    if (props.labelData[0] === "woman") {
-      setAdvertisement(Advertisements.woman)
-    } if (props.labelData[0] === "man") {
-      setAdvertisement(Advertisements.man)
-    } else {
-      setAdvertisement(Advertisements.kid)
+    if (typeof window !== 'undefined' && props.aiTask === OBJECT_DETECTION) {
+      const image = new window.Image()
+      if (typeof props.image === 'string') {
+        image.src = props.image
+      }
+      image.onload = () => {
+        setState(image)
+        setBoundingBoxesData(props.inferences)
+        setRawData(props.inferenceRawData)
+      }
     }
-    console.log(advertisement)
   }, [props.image])
+
+  useEffect(() => {
+    setLabelList(() => props.inferences?.map((item) => item.label))
+  }, [props.timestamp])
 
   useEffect(() => {
     props.setLabelData(labelTextOD.split(/\n/))
@@ -60,68 +109,42 @@ export default function ObjectiveDetection (props: ObjectDetectionProps) {
   }, [props.image])
 
   return (
-    <div className={styles['object-detection-container']}>
-      <div className={styles['upper-items']}>
-        {props.isDisplayTs === true
-          ? <div className={styles['timestamp-area']}>Timestamp:{timeStamp}</div>
-          : null
-        }
-        <div className={styles['boundingboxes-area']}>
-          <BoundingBoxes
-            aiTask={props.aiTask}
-            boundingBoxes={props.inferences}
-            img={props.image}
-            confidenceThreshold={props.probability}
-            label={props.labelData}
-            inferenceRawData={props.inferenceRawData}
-            setRawData={setRawData}
-            imageCount={props.imageCount}
-            setDisplayCount={props.setDisplayCount}
-            setLoadingDialogFlg={props.setLoadingDialogFlg}
-          />
-          <p>
-            Ad: {advertisement}
-            <img src={advertisement} width="100" />
-          </p>
-        </div>
-      </div>
-      <div className={styles['lower-items']}>
-        <div className={styles['left-item']}>
-          <div>{ROWDATA_EXPLANATION}</div>
-          <Textarea className={styles['raw-data']} defaultValue={JSON.stringify((rawData), null, '\t')} readOnly resize="none" />
-        </div>
-        <div className={styles['right-item']}>
-          <div>{LABEL_EXPLANATION}</div>
-          <Textarea className={styles['label-area']} value={labelTextOD} onChange={((event) => setLabelTextOD(event.target.value))} resize="none" />
-          <div className={styles['button-area']}>
-            <Button
-              onClick={() => document.getElementById('fileInputOD')?.click()}
-              style={{ color: '#ffffff', backgroundColor: '#2d78be' }}
-              variant='solid'
-              size='md'
-              m={'2'}
-            >
-              Import Labels
-              <input
-                id='fileInputOD'
-                type='file'
-                accept='.json'
-                style={{ display: 'none' }}
-                onChange={(event) => handleFileInputChangeODorCLS(event, setLabelTextOD)}
-              />
-            </Button>
-            <Button
-              onClick={() => exportLabelDataODorCLS(props)}
-              style={{ color: '#ffffff', backgroundColor: '#2d78be' }}
-              variant='solid'
-              size='md'
-              m={'2'}
-            >
-              Export Labels
-            </Button>
+    <>
+    {
+      props.sinageMode === false
+        ? <div className={styles['object-detection-container']}>
+            {props.isDisplayTs === true
+              ? <div className={styles['timestamp-area']}>Timestamp:{timeStamp}</div>
+              : null
+            }
+            <div className={styles['upper-items']}>
+              <div className={styles['right-item']}>
+                <Advertisement labels={labelList} sinageMode={props.sinageMode}/>
+              </div>
+            </div>
+            <div className={styles['lower-items']}>
+              <div className={styles['left-item']}>
+                <div>{ROWDATA_EXPLANATION}</div>
+                <Textarea className={styles['raw-data']} defaultValue={JSON.stringify((rawData), null, '\t')} readOnly resize="none" />
+              </div>
+              <div className={styles['right-item']}>
+                <div>{LABEL_EXPLANATION}</div>
+                <Textarea className={styles['label-area']} value={labelTextOD} onChange={((event) => setLabelTextOD(event.target.value))} resize="none" />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        : <div className={styles['object-detection-container']}>
+            {props.isDisplayTs === true
+              ? <div className={styles['timestamp-area']}>Timestamp:{timeStamp}</div>
+              : null
+            }
+            <div className={styles['upper-items']}>
+              <div className={styles['right-item']}>
+                <Advertisement labels={labelList} sinageMode={props.sinageMode}/>
+              </div>
+            </div>
+          </div>
+    }
+    </>
   )
 }

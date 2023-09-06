@@ -1,3 +1,19 @@
+.advertisement-area {
+  box-shadow: 0 0 20px rgb(171, 171, 171);
+  justify-content: center;
+  max-width: 900px;
+  margin-top: 20px;
+  margin-left: 300px;
+}
+
+.advertisement-area-sinage-mode {
+  box-shadow: 0 0 20px rgb(171, 171, 171);
+  justify-content: center;
+  max-width: 900px;
+  margin-top: 100px;
+  margin-left: 850px;
+}
+
 .object-detection-container {
   margin: 10px 1em;
 
@@ -20,14 +36,15 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    margin-top: 15px;
+    margin-top: 50px;
     
     .left-item{
-      width: 450px;
+      width: 650px;
       padding-right: 10px;
+      padding-left: 30px;
 
       .raw-data {
-        height: 300px;
+        height: 200px;
         font-size: 13px;
         border: solid;
         border-width: thin;
@@ -38,11 +55,11 @@
       }  
     }
     .right-item{
-      width: 450px;
-      padding-left: 10px;
+      width: 650px;
+      padding-left: 30px;
 
       .label-area {
-        height: 300px;
+        height: 200px;
         font-size: 12px;
         border: solid;
         border-width: medium;

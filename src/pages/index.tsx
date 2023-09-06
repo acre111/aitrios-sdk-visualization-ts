@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
 import LoadingDialog from '../components/common/dialog/loading'
+import { Switch } from '@chakra-ui/react'
 import Layout from '../components/common/layout'
-import SettingMenu from '../components/common/menu/settingmenu'
 import DropDownList from '../components/common/dropdownlist'
 import DefaultButton from '../components/common/button/defaultbutton'
 import ReloadSVG from '../components/common/button/defaultbutton/reload-svg'
 import ObjectiveDetection from '../components/tabs/aiTask/objectdetection'
-import History from '../components/tabs/mode/history'
 import Realtime from '../components/tabs/mode/realtime'
 import useInterval from '../hooks/useInterval'
 import { BoundingBoxProps, ClsInferenceProps, SegInferenceProps, PollingData, PollingHandlerProps, setDataProps, pollingHandler, setData, ErrorData, handleResponseErr, SegmentationLabelType, DeviceListData } from '../hooks/util'
 import styles from '../styles/main-page.module.scss'
-import dynamic from 'next/dynamic'
 
 export const REALTIME_MODE = 'realtimeMode'
 export const HISTORY_MODE = 'historyMode'
 export const OBJECT_DETECTION = 'objectDetection'
 export const CLASSIFICATION = 'classification'
 export const SEGMENTATION = 'segmentation'
-
-const Classification = dynamic(() => import('../components/tabs/aiTask/classification'), { ssr: false })
-const Segmentation = dynamic(() => import('../components/tabs/aiTask/segmentation'), { ssr: false })
 
 function Home () {
   const [aiTask, setAiTask] = useState<string>(OBJECT_DETECTION)
@@ -51,8 +45,8 @@ function Home () {
   const [inferencesSEG, setInferencesSEG] = useState<SegInferenceProps | undefined>(undefined)
 
   const [inferenceRawData, setInferencesRawData] = useState<string | undefined>(undefined)
-  const [labelDataOD, setLabelDataOD] = useState<string[]>(['id0', 'id1', 'id2', 'id3', 'id4'])
-  const [labelDataCLS, setLabelDataCLS] = useState<string[]>(['id0', 'id1', 'id2', 'id3', 'id4'])
+  const [labelDataOD, setLabelDataOD] = useState<string[]>(['woman', 'man', 'kid'])
+  const [labelDataCLS, setLabelDataCLS] = useState<string[]>(['woman', 'man', 'kid'])
   const [labelDataSEG, setLabelDataSEG] = useState<SegmentationLabelType[]>([
     { isVisible: true, label: 'label1', color: '#000000' },
     { isVisible: false, label: 'label2', color: '#0000ff' },
@@ -61,7 +55,6 @@ function Home () {
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [probability, setProbability] = useState<number>(0)
   const [isDisplayTs, setIsDisplayTs] = useState<boolean>(true)
-  const [displayScore, setDisplayScore] = useState<number>(5)
   const [isOverlayIR, setIsOverlayIR] = useState<boolean>(true)
   const [overlayIRC, setOverlayIRC] = useState<string>('#FFFFFF')
   const [intervalTimeValue, setIntervalTimeValue] = useState<number>(10)
@@ -77,7 +70,7 @@ function Home () {
   const [displayCount, setDisplayCount] = useState<number>(-1)
   const [pollingData, setPollingData] = useState<PollingData | undefined>(undefined)
 
-  const [transparency, setTransparency] = useState<number>(50)
+  const [sinageMode, setSinageMode] = useState<boolean>(false)
 
   const pollingHandlerProps: PollingHandlerProps = {
     deviceId,
@@ -133,20 +126,14 @@ function Home () {
   return (
     <>
       <LoadingDialog display={loadingDialogFlg} />
-      <Layout title="edge AI Signage Optimizer">
+      <Layout title="edge AI Digital Signage">
         <div className={styles['main-page-container']}>
-          <div className={styles['main-page-stage']}>
-            <Tabs isFitted className={styles['aitask-tabs']} onChange={(taskNum: number) => {
-              if (taskNum === 0) {
-                setAiTask(OBJECT_DETECTION)
-              } else if (taskNum === 1) {
-                setAiTask(CLASSIFICATION)
-              } else if (taskNum === 2) {
-                setAiTask(SEGMENTATION)
-              }
-            }}>
-              <TabPanels>
-                <TabPanel className={styles['aitask-tab-panel']}>
+          <div className={styles['sinage-mode-area']}>
+            Sinage mode: <Switch onChange={(event) => { setSinageMode((prev) => !prev) }} />
+          </div>
+          {
+            sinageMode === false
+              ? <div className={styles['main-page-stage']}>
                   <ObjectiveDetection
                     aiTask={aiTask}
                     timestamp={timestamp}
@@ -160,121 +147,83 @@ function Home () {
                     imageCount={imageCount}
                     setDisplayCount={setDisplayCount}
                     setLoadingDialogFlg={setLoadingDialogFlg}
+                    sinageMode={sinageMode}
                   />
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-            <Tabs isFitted className={styles['mode-tabs']} onChange={(tabNum: number) => {
-              switch (tabNum) {
-                case 0:
-                  setMode(REALTIME_MODE)
-                  break
-                case 1:
-                  setMode(HISTORY_MODE)
-                  break
-              }
-            }}>
-              <TabList className={styles['mode-tablist']}>
-                <Tab isDisabled={isPlaying || isUploading}>Realtime Mode</Tab>
-                <Tab isDisabled={isPlaying || isUploading}>History Mode</Tab>
-              </TabList>
-              <div className={styles['deviceid-area']}>
-                Device Name
-                <DropDownList
-                    id={'device-id-list'}
-                    name={deviceId} className={isPlaying || isUploading ? styles.disabled : styles.select}
-                    list={Object.keys(deviceIdList)}
-                    onChange={(event) => { setDeviceId(deviceIdList[event.target.value]) }}
-                    disabled={mode === REALTIME_MODE
-                      ? (isUploading)
-                      : (isPlaying)
-                    }
-                    defaultSpace={true}
-                />
-                <DefaultButton isLoading={false}
-                  icon={<ReloadSVG />}
-                  text={'Reload'}
-                  disabled={mode === REALTIME_MODE
-                    ? (isUploading)
-                    : (isPlaying)
-                  }
-                  action={async () => {
-                    setDeviceId('')
-                    setDeviceIdList({})
-                    setLoadingDialogFlg(true)
-                    const res = await fetch('/api/deviceInfo/deviceInfo', { method: 'GET' })
-                    setLoadingDialogFlg(false)
-                    if (res.status === 200) {
-                      await res.json().then((data) => {
-                        if (Object.keys(data).length === 0) {
-                          return window.alert('Connected device not found.')
+                  <div className={styles['deviceid-area']}>
+                    Device Name
+                    <DropDownList
+                      id={'device-id-list'}
+                      name={deviceId} className={isPlaying || isUploading ? styles.disabled : styles.select}
+                      list={Object.keys(deviceIdList)}
+                      onChange={(event) => { setDeviceId(deviceIdList[event.target.value]) }}
+                      disabled={mode === REALTIME_MODE
+                        ? (isUploading)
+                        : (isPlaying)
+                      }
+                      defaultSpace={true}
+                    />
+                    <DefaultButton isLoading={false}
+                      icon={<ReloadSVG />}
+                      text={'Reload'}
+                      disabled={mode === REALTIME_MODE
+                        ? (isUploading)
+                        : (isPlaying)
+                      }
+                      action={async () => {
+                        setDeviceId('')
+                        setDeviceIdList({})
+                        setLoadingDialogFlg(true)
+                        const res = await fetch('/api/deviceInfo/deviceInfo', { method: 'GET' })
+                        setLoadingDialogFlg(false)
+                        if (res.status === 200) {
+                          await res.json().then((data) => {
+                            if (Object.keys(data).length === 0) {
+                              return window.alert('Connected device not found.')
+                            }
+                            setDeviceIdList(data)
+                          })
+                        } else {
+                          const errorMessage: ErrorData = await res.json()
+                          handleResponseErr(errorMessage)
                         }
-                        setDeviceIdList(data)
-                      })
-                    } else {
-                      const errorMessage: ErrorData = await res.json()
-                      handleResponseErr(errorMessage)
+                      }
                     }
-                  }
-                }
+                    />
+                      <Realtime
+                        deviceId={deviceId}
+                        setDeviceId={setDeviceId}
+                        deviceIdList={deviceIdList}
+                        setDeviceIdList={setDeviceIdList}
+                        isPlaying={isPlaying}
+                        mode={mode}
+                        intervalTimeValue={intervalTimeValue}
+                        isLoading={isLoading}
+                        setIsPlaying={setIsPlaying}
+                        setImagePath={setImagePath}
+                        isUploading={isUploading}
+                        setIsUploading={setIsUploading}
+                        setIsLoading={setIsLoading}
+                        setIntervalTimeValue={setIntervalTimeValue}
+                        setLoadingDialogFlg={setLoadingDialogFlg}
+                      />
+                  </div>
+                </div>
+              : <ObjectiveDetection
+                  aiTask={aiTask}
+                  timestamp={timestamp}
+                  image={image}
+                  inferences={inferencesOD}
+                  inferenceRawData={inferenceRawData}
+                  labelData={labelDataOD}
+                  setLabelData={setLabelDataOD}
+                  probability={probability}
+                  isDisplayTs={isDisplayTs}
+                  imageCount={imageCount}
+                  setDisplayCount={setDisplayCount}
+                  setLoadingDialogFlg={setLoadingDialogFlg}
+                  sinageMode={sinageMode}
                 />
-              </div>
-              <TabPanels>
-                <TabPanel className={styles['realtime-mode-block']}>
-                  <Realtime
-                    deviceId={deviceId}
-                    setDeviceId={setDeviceId}
-                    deviceIdList={deviceIdList}
-                    setDeviceIdList={setDeviceIdList}
-                    isPlaying={isPlaying}
-                    mode={mode}
-                    intervalTimeValue={intervalTimeValue}
-                    isLoading={isLoading}
-                    setIsPlaying={setIsPlaying}
-                    setImagePath={setImagePath}
-                    isUploading={isUploading}
-                    setIsUploading={setIsUploading}
-                    setIsLoading={setIsLoading}
-                    setIntervalTimeValue={setIntervalTimeValue}
-                    setLoadingDialogFlg={setLoadingDialogFlg}
-                  />
-                </TabPanel>
-                <TabPanel className={styles['history-mode-block']}>
-                  <History
-                    deviceId={deviceId}
-                    setDeviceId={setDeviceId}
-                    deviceIdList={deviceIdList}
-                    setDeviceIdList={setDeviceIdList}
-                    isPlaying={isPlaying}
-                    mode={mode}
-                    intervalTimeValue={intervalTimeValue}
-                    subDirectory={imagePath}
-                    imageCount={imageCount}
-                    totalCount={totalCount}
-                    isFirst={isFirst}
-                    setIsPlaying={setIsPlaying}
-                    setSubDirectory={setImagePath}
-                    setImageCount={setImageCount}
-                    setTotalCount={setTotalCount}
-                    setIntervalTimeValue={setIntervalTimeValue}
-                    setLoadingDialogFlg={setLoadingDialogFlg}
-                    setIsFirst={setIsFirst}
-                    displayCount={displayCount}
-                    setDisplayCount={setDisplayCount}
-                    aiTask={aiTask}
-                    labelDataOD={labelDataOD}
-                    labelDataCLS={labelDataCLS}
-                    labelDataSEG={labelDataSEG}
-                    isDisplayTs={isDisplayTs}
-                    probability={probability}
-                    isOverlayIR={isOverlayIR}
-                    overlayIRC={overlayIRC}
-                    transparency={transparency}
-                  />
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </div>
+          }
         </div>
       </Layout >
     </>
