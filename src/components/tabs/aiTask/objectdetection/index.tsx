@@ -66,7 +66,7 @@ const Advertisement = ({ labels, signageMode: signageMode }: AdvertisementProps)
       <img
         src={advertisement}
         width={650}
-        className={signageMode === false ? styles['advertisement-area'] : styles['advertisement-area-singage-mode']}
+        className={signageMode === false ? styles['advertisement-area'] : styles['advertisement-area-signage-mode']}
       />
     </>
   )
