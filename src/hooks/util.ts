@@ -474,7 +474,7 @@ export const pollingHandler = async (props: PollingHandlerProps): Promise<Pollin
       handleResponseErr(errorMessage)
     }
   } catch (e) {
-    // handleResponseErr({ message: 'An error has occurred.F' })
+    handleResponseErr({ message: 'An error has occurred.' })
     props.setLoadingDialogFlg(false)
   }
   return pollingData
