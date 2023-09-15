@@ -31,7 +31,7 @@ export type AdvertisementProps = {
   signageMode: boolean
 }
 
-const Advertisement = ({ labels, signageMode: signageMode }: AdvertisementProps) => {
+const Advertisement = ({ labels, signageMode }: AdvertisementProps) => {
   const advertisements: { [name: string]: string } = {
     toy: 'toy.png',
     makeup: 'makeup.png',
